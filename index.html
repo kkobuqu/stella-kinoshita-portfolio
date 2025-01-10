@@ -75,7 +75,7 @@
             overflow: hidden;
             opacity: 0;
             margin: 0 2.25vw;
-            transition: max-height 0.5s ease, opacity 0.5s ease;
+            transition: opacity 0.5s ease;
         }
         .project-details.active {
             max-height: 250vh;
@@ -92,9 +92,9 @@
             margin: 1vw;
             height: auto;
             border-radius: 0.5vw;
+            transition: filter 0.3s ease;
         }
         .project-images img:hover {
-            transform: scale(1.05);
             filter: brightness(30%);
         }
         .project-description {
