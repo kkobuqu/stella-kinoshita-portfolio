@@ -78,19 +78,50 @@
             transition: max-height 0.5s ease, opacity 0.5s ease;
         }
         .project-details.active {
-            max-height: 200vh;
+            max-height: 250vh;
             margin: 0 2.25vw;
             opacity: 1;
         }
         .project-images {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 2vw;
+            gap: 1vw;
         }
         .project-images img {
-            max-width: 100%;
+            max-width: 95%;
+            margin: 1vw;
             height: auto;
             border-radius: 0.5vw;
+            transition: transform 0.3s ease, filter 0.3s ease;
+        }
+        .project-images img:hover {
+            transform: scale(1.05);
+            filter: brightness(30%);
+        }
+        .project-description {
+            position: absolute;
+            bottom: 1vw;
+            right: 1vw;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 0.5vw;
+            border-radius: 0.3vw;
+            font-size: 0.9vw;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .imagedetails {
+            position: absolute;
+            top: 5%;
+            right: 5%; /* Align to the right of the image */
+            color: white;
+            padding: 0.5vw;
+            border-radius: 0.3vw;
+            font-size: 0.9vw;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            text-align: right; /* Ensure text is aligned properly */
+            width: 50%; /* Adjust width to your preference */
         }
         .profile-section {
             flex: 1;
@@ -263,7 +294,7 @@
             const repelForce = (minDist - dist) / minDist;
 
             // Smoothly apply force to velocity
-            this.vx += Math.cos(angle) * repelForce * 2; // Lower values for smoother reaction
+            this.vx += Math.cos(angle) * repelForce * 2; // Lower values for smoother reactions
             this.vy += Math.sin(angle) * repelForce * 2;
         }
     }
@@ -273,86 +304,166 @@
     {
         title: "Kumler Chapel Projection Mapping",
         description: "Year of the Cicada is a one-minute solo projection mapping piece in Kumler Chapel in Oxford, Ohio. This audio-reactive project was meticulously mapped to the chapel's arched architecture, combining visual storytelling with technical precision. Inspired by the 17-year hibernation cycle of cicadas, the piece reflects Stella’s personal connection to this natural phenomenon, being born on a year when the cicadas emerged. The work is both a technical showcase and a personal statement, blending light, sound, and narrative.",
-        images: ["yearofthecicada1.jpg", "yearofthecicada2.gif"]
+        images: [
+            { src: "yearofthecicada1.jpg", details: "Still image of Year of the Cicada. This project was ispired by the different passive influences I've grown up with. From smaller motifs of ginko leaves to the large cicada in the center, This piece was meant to be a reflection of my work to end out the fall semester of my junior year in college."},
+            {src: "yearofthecicada2.gif", details: "Video of audio reactivity."}
+                ]
     },
     {
         title: "BLINK 2024 Projection Mapping",
         description: "For BLINK 2024, Stella collaborated with a team to create a projection mapping animatic displayed on the YWCA during the festival. As one of two 3D animation leads, Stella contributed to five scenes in the final projection, showcasing her skills in animation and teamwork on this large-scale public art installation.",
-        images: ["blink1.jpg", "blink2.jpg", "blink3.jpg", "blink4.png"]
+        images: [
+            {src: "blink1.jpg", details: "Shadowbox scene, made with Blender."},
+            {src: "blink2.jpg", details: "Vintage Dial scene, made with Blender, Procreate, and TouchDesigner."},
+            {src: "blink3.jpg", details: "Finale Flower, modeled and animated in Blender, textured and rendered in Cinema4D."},
+            {src: "blink4.png", details: "A work in progress shot pre-Blink."}
+                ]
     },
     {
         title: "MUXR",
         description: "Note to self: include the projection mapping outside the stage, MU basketball, the client demos, and the muxr loops for lab hours",
-        images: ["image5.jpg", "image6.jpg", "image7.jpg", "image8.jpg"]
+        images: [
+            {src: "image1.jpg", details: "Words words words"},
+            {src: "image2.jpg", details: "Words words words"},
+            {src: "image3.jpg", details: "Words words words"},
+            {src: "image4.jpg", details: "Words words words"}
+                ]
     },
     {
         title: "Laptop Ensemble",
         description: "This is a description of Project 2.",
-        images: ["image5.jpg", "image6.jpg", "image7.jpg", "image8.jpg"]
+        images: [
+            {src: "image1.jpg", details: "Words words words"},
+            {src: "image2.jpg", details: "Words words words"},
+            {src: "image3.jpg", details: "Words words words"},
+            {src: "image4.jpg", details: "Words words words"}
+                ]
     },
     {
         title: "Pixel Magazine Release Party",
         description: "This is a description of Project 2.",
-        images: ["image5.jpg", "image6.jpg", "image7.jpg", "image8.jpg"]
+        images: [
+            {src: "image1.jpg", details: "Words words words"},
+            {src: "image2.jpg", details: "Words words words"},
+            {src: "image3.jpg", details: "Words words words"},
+            {src: "image4.jpg", details: "Words words words"}
+                ]
     },
     {
         title: "Tarot Card Illustration Set",
         description: "Stella has been designing and illustrating a custom tarot deck, blending traditional symbols and meanings with personal symbolism and references. Each card is designed to reflect her perspective and experiences while honoring the essence of traditional tarot. The entire deck is illustrated using Procreate. The cards shown below in order are as follows: The Tower, The Star, The Lovers, Justice, Death, The Wheel of Fortune, The Devil, and The Hierophant.",
-        images: ["tarot1.png", "tarot2.png", "tarot3.png", "tarot4.png"]
+        images: [
+            {src: "tarot1.png", details: "On the left, The Tower. This card was inspired by a blend of bothic architecture and traditional Japanese paintings. On the right, The Star. This card was inspired by the original symbols of the 7 elemental chakras. The Greek around the star spells out 'Reincarnation'-- one of the interpretations of the card."},
+            {src: "tarot2.png", details: "On the left, The Lovers. This card was my take on the traditional Lovers card without a specifically human centered view. On the right, Judgement. This card was a flipped interpretation of the traditional judgement card, taking the original elements like the sword and scale and giving them a new meaning."},
+            {src: "tarot3.png", details: "On the left, Death. On the right, The Wheel of Fortune."},
+            {src: "tarot4.png", details: "On the left, The Devil. Similar to The Lovers card, I took a less human centered view and interpreted the pair affected by the devil as a pair of ferrets. On the right, The Hierophant."}
+                ]
     },
     {
         title: "3D Modeling Studies",
         description: "Stella has undertaken a series of 3D modeling studies to refine her skills, focusing on various subjects. The dolls and figurines in this collection draw inspiration from Skull Panda dolls, while the miniature car was created as part of an art test for a previous internship. Each piece was fully modeled, textured, and rendered in Blender.",
-        images: ["doll3doll4.png", "doll3doll4.gif", "doll2.1.png", "doll2.2.png", "tinycar.png", "tinycar.gif"]
+        images: [
+            {src: "doll3doll4.png", details: "A still image of my Angel/Devil modeling study. These dolls were inspired by the Skull Panda figurine series by Xiong Miao. All textures and models were made and rendered in Blender."},
+            {src: "doll3doll4.gif", details: "A 360 view of my Angel/Devil modeling study."},
+            {src: "doll2.1.png", details: "A still image of a third model made inspired by Xiong Miao. All textures and models were made and rendered in Blender."},
+            {src: "doll2.2.png", details: "A close up shot of the image to the left."},
+            {src: "tinycar.png", details: "This tiny car model was created in an art test for Level Up Studio from an image provided by the company. The textures and model were created in Blender."},
+            {src: "tinycar.gif", details: "A 360 view of the tiny car model."}
+                ]
     },
     {
         title: "WHY? Music Video",
         description: "This is a description of Project 2.",
-        images: ["image5.jpg", "image6.jpg", "image7.jpg", "image8.jpg"]
+        images: [
+            {src: "image1.jpg", details: "Words words words"},
+            {src: "image2.jpg", details: "Words words words"},
+            {src: "image3.jpg", details: "Words words words"},
+            {src: "image4.jpg", details: "Words words words"}
+                ]
     },
             
     {
         title: "Miami University Games + Sim Arcade Machine",
         description: "This is a description of Project 2.",
-        images: ["image5.jpg", "image6.jpg", "image7.jpg", "image8.jpg"]
+        images: [
+            {src: "image1.jpg", details: "Words words words"},
+            {src: "image2.jpg", details: "Words words words"},
+            {src: "image3.jpg", details: "Words words words"},
+            {src: "image4.jpg", details: "Words words words"}
+                ]
     },       
     
-    // Add more projects here
+    // Add more projects here if needed
 ];
 
-    function populateProjects() {
-        const projectsContainer = document.getElementById('projects-container');
+function populateProjects() {
+    const projectsContainer = document.getElementById('projects-container');
 
-        projects.forEach((project, index) => {
-            const projectDiv = document.createElement('div');
-            projectDiv.classList.add('project');
+    projects.forEach((project, index) => {
+        const projectDiv = document.createElement('div');
+        projectDiv.classList.add('project');
 
-            const titleDiv = document.createElement('div');
-            titleDiv.classList.add('project-title');
-            titleDiv.textContent = project.title;
-            titleDiv.addEventListener('click', () => toggleDetails(index));
-            projectDiv.appendChild(titleDiv);
+        const titleDiv = document.createElement('div');
+        titleDiv.classList.add('project-title');
+        titleDiv.textContent = project.title;
+        titleDiv.addEventListener('click', () => toggleDetails(index));
+        projectDiv.appendChild(titleDiv);
 
-            const detailsDiv = document.createElement('div');
-            detailsDiv.classList.add('project-details');
-            const descriptionP = document.createElement('p');
-            descriptionP.textContent = project.description;
-            detailsDiv.appendChild(descriptionP);
+        const detailsDiv = document.createElement('div');
+        detailsDiv.classList.add('project-details');
+        const descriptionP = document.createElement('p');
+        descriptionP.textContent = project.description;
+        detailsDiv.appendChild(descriptionP);
 
-            const imagesDiv = document.createElement('div');
-            imagesDiv.classList.add('project-images');
-            project.images.forEach(imgSrc => {
-                const img = document.createElement('img');
-                img.src = imgSrc;
-                img.alt = project.title;
-                imagesDiv.appendChild(img);
+        const imagesDiv = document.createElement('div');
+        imagesDiv.classList.add('project-images');
+        project.images.forEach((image) => {
+            const imageWrapper = document.createElement('div');
+            imageWrapper.classList.add('image-wrapper');
+            imageWrapper.style.position = 'relative';
+
+            const img = document.createElement('img');
+            img.src = image.src;
+            img.alt = `${project.title} Image`;
+            img.style.width = '100%';
+            img.style.borderRadius = '0.5vw';
+
+            const imagedetails = document.createElement('div');
+            imagedetails.classList.add('imagedetails');
+            imagedetails.textContent = image.details;
+            imagedetails.style.position = 'absolute';
+            imagedetails.style.bottom = '0vh';
+            imagedetails.style.right = '0vw;';
+            imagedetails.style.color = 'white';
+            imagedetails.style.padding = '0.5vw';
+            imagedetails.style.borderRadius = '0.3vw';
+            imagedetails.style.fontSize = '0.9vw';
+            imagedetails.style.opacity = '0';
+            imagedetails.style.transition = 'opacity 0.3s ease';
+
+            imageWrapper.appendChild(img);
+            imageWrapper.appendChild(imagedetails);
+
+            // hover event listeners, waiting for the mouse to hover over
+            imageWrapper.addEventListener('mouseenter', () => {
+                img.style.filter = 'brightness(50%)';
+                imagedetails.style.opacity = '1';
             });
-            detailsDiv.appendChild(imagesDiv);
 
-            projectDiv.appendChild(detailsDiv);
-            projectsContainer.appendChild(projectDiv);
+            imageWrapper.addEventListener('mouseleave', () => {
+                img.style.filter = 'brightness(100%)';
+                imagedetails.style.opacity = '0';
+            });
+
+            imagesDiv.appendChild(imageWrapper);
         });
-    }
+
+        detailsDiv.appendChild(imagesDiv);
+        projectDiv.appendChild(detailsDiv);
+        projectsContainer.appendChild(projectDiv);
+    });
+}
+
 
     function toggleDetails(index) {
         const allDetails = document.querySelectorAll('.project-details');
@@ -368,7 +479,7 @@
 
         function initStars() {
             for (let i = 0; i < numStars; i++) {
-                const radius = (Math.random() * 5 + 3) * 6; // Increased size by 6 times
+                const radius = (Math.random() * 5 + 3) * 6; // star size I think
                 const x = Math.random() * canvas.width;
                 const y = Math.random() * canvas.height;
                 const speedY = (Math.random() * 0.1 + 0.05) * (50 / radius);
@@ -406,7 +517,7 @@
         });
 
         document.getElementById('projects-container').addEventListener('click', () => {
-            setTimeout(updateStarReactions, 500); // Adjust timing to match dropdown animations
+            setTimeout(updateStarReactions, 500); // starReaction movement speed
         });
 
         initStars();
