@@ -1,528 +1,163 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <link rel="icon" type="image/x-icon" href="favi.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Agu+Display&family=Maven+Pro:wght@400..900&display=swap" rel="stylesheet">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfolio</title>
-    <style>
-        header {
-            width: 100%;
-            padding: 2vh 2vw;
-            color: white;
-            text-align: left;
-            z-index: 3;
-            position: sticky;
-            background-color: #000b0e;
-        }
-        .header1 {
-            font-family: "Agu Display", serif;
-            font-size: 3vw;
-            
-        }
-        .header2 {
-            font-family: "Maven Pro", serif;
-            font-size: 2vw;
-        }
-        body {
-            margin: 0;
-            font-family: "Maven Pro", serif;
-            color: white;
-            background-color: #001216;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 1vw;
-            height: 10%;
-            cursor: url('pointer.png'), auto;
-        }
-        main {
-            display: flex;
-            flex-wrap: wrap;
-            width: 100%;
-            padding: 2vw;
-            box-sizing: border-box;
-            position: relative;
-            z-index: 2;
-        }
-        .projects {
-            flex: 2;
-            min-width: 40vw;
-            padding-right: 1vw;
-            box-sizing: border-box;
-            background: rgba(9, 75, 90, 0.5);
-        }
-        .bio {
-            margin: 0 3vw;
-            font-size: 1.25vw;
-        }
-        .project-title {
-            font-size: 1.5vw;
-            cursor: url('mouse.png'), auto;
-            margin: 0vh 1vw;
-            margin-top: 2vh;
-            padding: 1vh;
-        }
-        .project-title:hover {
-            font-size: 1.5vw;
-            text-decoration: underline;
-        }
-        .project-details {
-            max-height: 0;
-            overflow: hidden;
-            opacity: 0;
-            margin: 0 2.25vw;
-            transition: opacity 0.5s ease;
-        }
-        .project-details.active {
-            max-height: 250vh;
-            margin: 0 2.25vw;
-            opacity: 1;
-        }
-        .project-images {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1vw;
-        }
-        .project-images img {
-            max-width: 95%;
-            margin: 1vw;
-            height: auto;
-            border-radius: 0.5vw;
-            transition: filter 0.3s ease;
-        }
-        .project-images img:hover {
-            filter: brightness(30%);
-        }
-        .project-description {
-            position: absolute;
-            bottom: 1vw;
-            right: 1vw;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 0.5vw;
-            border-radius: 0.3vw;
-            font-size: 0.9vw;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .imagedetails {
-            position: absolute;
-            top: 5%;
-            right: 5%; /* Align to the right of the image */
-            color: white;
-            padding: 0.5vw;
-            border-radius: 0.3vw;
-            font-size: 0.9vw;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            text-align: right; /* Ensure text is aligned properly */
-            width: 50%; /* Adjust width to your preference */
-        }
-        .profile-section {
-            flex: 1;
-            min-width: 30vw;
-            text-align: center;
-            box-sizing: border-box;
-        }
-        .profile-section img {
-            width: 20vw;
-            height: 20vw;
-            border-radius: 25%;
-            margin-bottom: 4vh;
-        }
-        .carousel {
-            margin-top: 4vh;
-        }
-        .carousel img {
-            width: 80%;
-            max-width: 15vw;
-            margin: 2vh auto;
-            display: block;
-            border-radius: 0.5vw;
-        }
-        .footer {
-            width: 100%;
-            padding: 2vh;
-            background: #000b0e;
-            color: white;
-            text-align: center;
-            z-index: 2;
-            position: relative;
-        }
-        .footer a {
-            color: white;
-            margin: 0 2vw;
-            text-decoration: none;
-            cursor: url('mouse.png'), auto;
-        }
-        .footer a:hover {
-            text-decoration: underline;
-        }
-        canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-        }
-        .page-container {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        .content-wrapper {
-            flex: 1;
-        }
-    </style>
-</head>
-<body>
-    <div class="page-container">
-        <canvas id="background"></canvas>
-        <header>
-            <span class="header1">STELLA KINOSHITA</span>
-            <br>
-            <span class="header2">Art + Tech</span>
-        </header>
-        <main class="content-wrapper">
-            <section class="projects">
-                <div id="projects-container"></div>
-            </section>
-            <aside class="profile-section">
-                <img src="me.png" alt="Profile Image">
-                <p class="bio">Stella Kinoshita is a 2D illustrator, 3D graphic designer, lighting programmer, and producer from Yellow Springs, OH.<br><br>Her favorite programs to create with are Procreate, TouchDesigner, and Blender.</p>
-<!--                 <div class="carousel">
-                    <img src="image1.jpg" alt="Image 1">
-                    <img src="image2.jpg" alt="Image 2">
-                </div> -->
-            </aside>
-        </main>
-        <footer class="footer">
-            <a href="resume_stella_kinoshita.pdf" target="_blank">Resume</a>
-            <a href="https://vcard.link/card/Dsuh" target="_blank">Contact Me</a>
-            <a href="https://instagram.com/pastellapencil/" target="_blank";>Instagram</a>
-            <a href="https://www.linkedin.com/in/stella-kinoshita/" target="_blank">LinkedIn</a>
-            <a href="https://www.artstation.com/stellakinoshita4" target="_blank">ArtStation</a>
-        </footer>
-    </div>
+<!DOCTYPE HTML>
+<!--
+	Multiverse by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Stella Kinoshita Portfolio</title>
+		<meta charset="utf-8" />
+        <link rel="icon" type="image/x-icon" href="favi.png">
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
 
-    <script>
-        const canvas = document.getElementById('background');
-        const ctx = canvas.getContext('2d');
+		<!-- Wrapper -->
+			<div id="wrapper">
 
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
+				<!-- Header -->
+					<header id="header">
+						<h1><a href="index.html"><strong>Stella Kinoshita</strong> art + tech</a></h1>
+						<nav>
+							<ul>
+								<li><a href="#footer" class="icon solid fa-info-circle">About</a></li>
+							</ul>
+						</nav>
+					</header>
 
-        resizeCanvas();
+				<!-- Main -->
+					<div id="main">
+						<article class="thumb">
+							<a href="blink1.jpg" class="image"><img src="blink1.jpg" alt="" /></a>
+							<h2>BLINK 2024 - Shadow Box</h2>
+							<p>For BLINK 2024, Stella collaborated with a team to create a projection mapping animatic displayed on the YWCA during the festival. As one of two 3D animation leads, Stella contributed to five scenes in the final projection, showcasing her skills in animation and teamwork on this large-scale public art installation. This shadowbox scene was created using Procreate to create image planes and Blender to animate, light, and render the scene.</p>
+						</article>
+						<article class="thumb">
+							<a href="blink2.jpg" class="image"><img src="blink2.jpg" alt="" /></a>
+							<h2>BLINK 2024 - Dials</h2>
+							<p>For BLINK 2024, Stella collaborated with a team to create a projection mapping animatic displayed on the YWCA during the festival. As one of two 3D animation leads, Stella contributed to five scenes in the final projection, showcasing her skills in animation and teamwork on this large-scale public art installation. This scene was created in Blender based on concept art from one of the creative directors, Stella Hudson. The central sensor image was illustrated in Procreate, and elements of the render were created in TouchDesigner.</p>
+						</article>
+						<article class="thumb">
+							<a href="blink3.jpg" class="image"><img src="blinkflowerrender.png" alt="" /></a>
+							<h2>BLINK 2024 - Finale Flower</h2>
+							<p>For BLINK 2024, Stella collaborated with a team to create a projection mapping animatic displayed on the YWCA during the festival. As one of two 3D animation leads, Stella contributed to five scenes in the final projection, showcasing her skills in animation and teamwork on this large-scale public art installation. This finale flower scene was modeled and animated in Blender, and then exported into Cinema4D where it was textured and rendered. The final cut had post processing done in After Effects.</p>
+						</article>
+						<article class="thumb">
+							<a href="yearofthecicada2.gif" class="image"><img src="yearofthecicada1.jpg" alt="" /></a>
+							<h2>Year of the Cicada</h2>
+							<p>Year of the Cicada is a one-minute solo projection mapping piece in Kumler Chapel in Oxford, Ohio. This audio-reactive project was meticulously mapped to the chapel's arched architecture, combining visual storytelling with technical precision. Inspired by the 17-year hibernation cycle of cicadas, the piece reflects Stella’s personal connection to this natural phenomenon, being born on a year when the cicadas emerged. The work is both a technical showcase and a personal statement, blending light, sound, and narrative. This piece was illustrated in Procreate and later animated and lit in TouchDesigner. Year of the Cicada was also featured in 2025 on Autodesk's Instructables front page.</p>
+						</article>
+						<article class="thumb">
+							<a href="mmbb2.jpg" class="image"><img src="mmbb1.jpg" alt="" /></a>
+							<h2>MU Basketball Shoot</h2>
+							<p>Stella assisted in coordinating and running Miami University Men's Basketball videoshoot. Stella created many graphics in TouchDesigner which were used for player profiles, player introductions on social media and in games, and group shots. Stella also programmed and designed the lighting for this shoot.</p>
+						</article>
+						<article class="thumb">
+							<a href="muxrlabhours1.gif" class="image"><img src="muxr.jpg" alt="" /></a>
+							<h2>MUXR</h2>
+							<p>As a lab technician at Miami University's XR Stage, Stella has contributed to a variety of events and tasks. She has assisted with client demos and workshops for visiting design firms, hosted tours of the facility, and played a key role in organizing events such as the Miami University Laptop Ensemble performance and videoshoots for Miami University's basketball teams. In addition to event coordination, Stella has created custom content for these events, using tools like Blender, TouchDesigner, MadMapper, and Procreate.</p>
+						</article>
+                        <article class="thumb">
+							<a href="tinycar.gif" class="image"><img src="tinycar.png" alt="" /></a>
+							<h2>Tiny Blue Car</h2>
+							<p>This tiny car model was created in an art test for Level Up Studio from an image provided by the company, which Stella later went onto work at as a 3D trainee. The textures and model were created and rendered in Blender.</p>
+						</article>
+                        <article class="thumb">
+							<a href="seryphwide.jpg" class="image"><img src="seryphwide.jpg" alt="" /></a>
+							<h2>Seryph</h2>
+							<p>Stella created Seryph as a character and anatomy study. The character was an original concept and modeled, textured, and rendered in Blender.</p>
+						</article>
+                        <article class="thumb">
+							<a href="doll2.2.png" class="image"><img src="doll2.1.png" alt="" /></a>
+							<h2>Pink Figurine</h2>
+							<p>Inspired by Xiong Miao, Stella designed, modeled, textured, and rendered pink figurine as a study on the 3D model to 3D print pipeline. All textures and models were made and rendered in Blender.</p>
+						</article>
+                        <article class="thumb">
+							<a href="doll3doll4.gif" class="image"><img src="doll3doll4.png" alt="" /></a>
+							<h2>Angel/Devil Figurines</h2>
+							<p>Similar to pink figurine, Stella designed and modeled Angel/Devil as another experiment with modeling 3D-figure-style models. She also wanted to experiment with contrast, lighting, character design, and texture; this model is the final product. Angel/Devil was made with Blender.</p>
+						</article>
+						<article class="thumb">
+							<a href="muxrlabhours2.gif" class="image"><img src="muxrlabhours1.jpg" alt="" /></a>
+							<h2>Stained Glass Garden</h2>
+							<p>Stella created Stained Glass Garden with a combination of TouchDesigner, Blender, and Procreate to illustrate, animate, compile, and add post processing to the final scene.</p>
+						</article>
+						<article class="thumb">
+							<a href="mcveyprojector.jpg" class="image"><img src="mcveyprojector2.png" alt="" /></a>
+							<h2>Sleeping Giant</h2>
+							<p>As a final project for a 3D character animation course, Stella created Sleeping Giant, a robot character who sleeps in the illusion of a giant box, living as a projection mapping installation in McVey Data Science Building. Stella animated the model, which was downloaded from Sketchfab, and created textures and lighting for the scene.</p>
+						</article>
+						<article class="thumb">
+							<a href="mule1.gif" class="image"><img src="mule.png" alt="" /></a>
+							<h2>Laptop Ensemble Performance</h2>
+							<p>Stella collaborated with Eric Sheffield to organize and coordinate the Miami University Laptop Ensemble (MULE) performance. MULE showcases electro-acoustic and digital music performed using laptops, tablets, sensors, controllers, synths, and other electronic instruments, blending technology and creativity. Stella developed a system to seamlessly switch between songs and scenes, programmed the event's lighting, and provided technical support to address challenges during setup and execution. Stella's contributions ensured the performance ran smoothly and delivered an engaging show for the audience.</p>
+						</article>
+						<article class="thumb">
+							<a href="pixel2.png" class="image"><img src="pixel1.jpg" alt="" /></a>
+							<h2>Pixel Magazine 2024 Release</h2>
+							<p>Stella collaborated with Pixel Magazine to produce a visual for their 2024 magazine release party. Working under a tight deadline, she created the visual and assisted with event setup in just a few hours. The visual was well-received by attendees, who were excited to learn that Stella was behind the creation. Her quick thinking and creative skills helped enhance the event’s atmosphere. The graphic was modeled, animated, and rendered in Blender.</p>
+						</article>
+                        <article class="thumb">
+							<a href="lightingdemo.gif" class="image"><img src="concept1output.png" alt="" /></a>
+							<h2>WHY? Music Video</h2>
+							<p>In the spring of 2024, Stella collaborated with Scott Fredette, Ben Nicholson, Yoni Wolf, and other students from Miami University to create content and program lighting for the 'G-dzillah G’dolah' music video. She developed over 100 visual concepts inspired by the song, many of which were featured in the final production. During the shoot, Stella worked closely with Scott's lighting designer, Jason Nix, to program the lighting for each shot, ensuring the visuals and lighting seamlessly complemented the music and overall aesthetic.</p>
+						</article>
+						<article class="thumb">
+							<a href="tarot1.png" class="image"><img src="tarot1.png" alt="" /></a>
+							<h2>Tarot Illustrations pt.1</h2>
+							<p>Stella has been designing and illustrating a custom tarot deck, blending traditional symbols and meanings with personal symbolism and references. Each card is designed to reflect her perspective and experiences while honoring the essence of traditional tarot. The entire deck is illustrated using Procreate. On the left, The Tower. On the right, The Star.</p>
+						</article>
+                        <article class="thumb">
+							<a href="tarot2.png" class="image"><img src="tarot2.png" alt="" /></a>
+							<h2>Tarot Illustrations pt.2</h2>
+							<p>Stella has been designing and illustrating a custom tarot deck, blending traditional symbols and meanings with personal symbolism and references. Each card is designed to reflect her perspective and experiences while honoring the essence of traditional tarot. The entire deck is illustrated using Procreate. On the left, The Lovers. On the right, Justice.</p>
+						</article>
+                        <article class="thumb">
+							<a href="tarot3.png" class="image"><img src="tarot3.png" alt="" /></a>
+							<h2>Tarot Illustrations pt.3</h2>
+							<p>Stella has been designing and illustrating a custom tarot deck, blending traditional symbols and meanings with personal symbolism and references. Each card is designed to reflect her perspective and experiences while honoring the essence of traditional tarot. The entire deck is illustrated using Procreate. On the left, Death. On the right, The Wheel of Fortune.</p>
+						</article>
+					</div>
 
-        const stars = [];
-        const numStars = 50;
-        const baseColor = "#072a32";
+				<!-- Footer -->
+					<footer id="footer" class="panel">
+						<div class="inner split">
+							<div>
+								<section>
+									<h2>Stella Kinoshita</h2>
+									<p>Stella Kinoshita is a 2D illustrator, 3D designer, lighting programmer, and producer from Yellow Springs, OH. <br>Her favorite programs to create with are Procreate, TouchDesigner, and Blender.</p>
+								</section>
+								<section>
+									<h2>Follow me on ...</h2>
+									<ul class="icons">
+										<li><a href="https://www.instagram.com/pastellapencil/" class="icon brands fa-instagram" target="_blank"><span class="label">Instagram</span></a></li>
+										<li><a href="https://www.linkedin.com/in/stella-kinoshita/" class="icon brands fa-linkedin-in" target="_blank"><span class="label">LinkedIn</span></a></li>
+									</ul>
+								</section>
+                                <section>
+                                    <h2>
+                                        <a href="resume_stella_kinoshita.pdf" target="_blank">Resume</a>
+                                    </h2>
+                                </section>
+							</div>
+							<div class="profile-section" >
+                                <img src="me.png" alt="Profile Image">
+							</div>
+						</div>
+					</footer>
 
-        function getRandomHueColor(baseColor) {
-            const hueVariance = Math.floor(Math.random() * 50) - 25; // Variance of ±25
-            const baseHue = 190; // Approximate hue of #072a32
-            const adjustedHue = Math.min(360, Math.max(0, baseHue + hueVariance));
-            return `hsl(${adjustedHue}, 50%, 40%)`;
-        }
+			</div>
 
-        class Star {
-    constructor(x, y, radius, speedY) {
-        this.x = x;
-        this.y = y;
-        this.radius = radius;
-        this.speedY = speedY;
-        this.color = getRandomHueColor(baseColor);
-        this.vx = 0; // Velocity in x direction
-        this.vy = 0; // Velocity in y direction
-    }
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.poptrox.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
 
-    draw() {
-        ctx.beginPath();
-        for (let i = 0; i < 4; i++) {
-            const angle = (i * Math.PI) / 2;
-            const nextAngle = ((i + 1) * Math.PI) / 2;
-
-            const innerX = this.x + Math.cos(angle) * (this.radius * 0.5);
-            const innerY = this.y + Math.sin(angle) * (this.radius * 0.5);
-            const outerX = this.x + Math.cos(nextAngle) * this.radius;
-            const outerY = this.y + Math.sin(nextAngle) * this.radius;
-
-            ctx.lineTo(innerX, innerY);
-            ctx.lineTo(outerX, outerY);
-        }
-        ctx.closePath();
-        ctx.strokeStyle = this.color;
-        ctx.lineWidth = 2;
-        ctx.stroke();
-    }
-
-    update() {
-        this.x += this.vx;
-        this.y += this.vy;
-        this.y -= this.speedY;
-
-        // Apply friction to reduce velocity over time for smoother motion
-        this.vx *= 0.9;
-        this.vy *= 0.9;
-
-        if (this.y + this.radius < 0) {
-            this.y = canvas.height + this.radius;
-            this.x = Math.random() * canvas.width;
-            this.color = getRandomHueColor(baseColor);
-        }
-    }
-
-    repel(dropdownRect) {
-        const rectCenterX = dropdownRect.x + dropdownRect.width / 2;
-        const rectCenterY = dropdownRect.y + dropdownRect.height / 2;
-
-        const dx = this.x - rectCenterX;
-        const dy = this.y - rectCenterY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const minDist = dropdownRect.width / 2 + this.radius;
-
-        if (dist < minDist) {
-            const angle = Math.atan2(dy, dx);
-            const repelForce = (minDist - dist) / minDist;
-
-            // Smoothly apply force to velocity
-            this.vx += Math.cos(angle) * repelForce * 2; // Lower values for smoother reactions
-            this.vy += Math.sin(angle) * repelForce * 2;
-        }
-    }
-}
-        
-        const projects = [
-    {
-        title: "Kumler Chapel Projection Mapping",
-        description: "Year of the Cicada is a one-minute solo projection mapping piece in Kumler Chapel in Oxford, Ohio. This audio-reactive project was meticulously mapped to the chapel's arched architecture, combining visual storytelling with technical precision. Inspired by the 17-year hibernation cycle of cicadas, the piece reflects Stella’s personal connection to this natural phenomenon, being born on a year when the cicadas emerged. The work is both a technical showcase and a personal statement, blending light, sound, and narrative.",
-        images: [
-            { src: "yearofthecicada1.jpg", details: "Still image of Year of the Cicada. This project was ispired by the different passive influences I've grown up with. From smaller motifs of ginko leaves to the large cicada in the center, This piece was meant to be a reflection of my work to end out the fall semester of my junior year in college."},
-            {src: "yearofthecicada2.gif", details: "Video of audio reactivity."}
-                ]
-    },
-    {
-        title: "BLINK 2024 Projection Mapping",
-        description: "For BLINK 2024, Stella collaborated with a team to create a projection mapping animatic displayed on the YWCA during the festival. As one of two 3D animation leads, Stella contributed to five scenes in the final projection, showcasing her skills in animation and teamwork on this large-scale public art installation.",
-        images: [
-            {src: "blink1.jpg", details: "Shadowbox scene, made with Blender."},
-            {src: "blink2.jpg", details: "Vintage Dial scene, made with Blender, Procreate, and TouchDesigner."},
-            {src: "blink3.jpg", details: "Finale Flower, modeled and animated in Blender, textured and rendered in Cinema4D."},
-            {src: "blink4.png", details: "A work in progress shot pre-Blink."}
-                ]
-    },
-    {
-        title: "MUXR",
-        description: "As a lab technician at Miami University's XR Stage, Stella has contributed to a variety of events and tasks. She has assisted with client demos and workshops for visiting design firms, hosted tours of the facility, and played a key role in organizing events such as the Miami University Laptop Ensemble performance and videoshoots for Miami University's basketball teams. In addition to event coordination, Stella has created custom content for these events, using tools like Blender, TouchDesigner, MadMapper, and Procreate.",
-        images: [
-            {src: "mmbb1.jpg", details: "Miami University Men's Basketball videoshoot. This graphic was made in TouchDesigner and was used for player profiles and player introductions on social media and in games. There was also an alternate version made in inversed colors for the player's red uniforms."},
-            {src: "mmbb2.jpg", details: "This was a second visual made in TouchDesigner using noise and a grid to create dynamic movement. This visual was used for player group shots."},
-            {src: "muxrlabhours1.gif", details: "This visual was made in TouchDesigner and often displayed in tours of Miami University's XR stage."},
-            {src: "muxrlabhours2.gif", details: "This visual was illustrated in Procreate, animated in Blender as separate planes, and then displayed through TouchDesigner, for the same purposes as the visual on the left."},
-            {src: "muxr.jpg", details: "A dance performance using a kinect and reactive visuals in Notch."},
-            {src: "mcveyprojector.jpg", details: "An animated giant, set in a box environment and projection mapped onto the atrium lobby wall in McVey Data Science Building. The model used was from Sketchfab and the textures, animations, and rendering was done in Blender."}
-                ]
-    },
-    {
-        title: "Laptop Ensemble",
-        description: "Stella collaborated with Eric Sheffield to organize and coordinate the Miami University Laptop Ensemble (MULE) performance. MULE showcases electro-acoustic and digital music performed using laptops, tablets, sensors, controllers, synths, and other electronic instruments, blending technology and creativity. Stella developed a system to seamlessly switch between songs and scenes, programmed the event's lighting, and provided technical support to address challenges during setup and execution. Stella's contributions ensured the performance ran smoothly and delivered an engaging show for the audience.",
-        images: [
-            {src: "mule1.gif", details: "This visual was made in TouchDesigner and had audio sourced in from each of the laptops within the ensemble. The lights were also programed on an MA3 console and meant to look like the visuals were coming off the walls and onto the performers."},
-            {src: "mule2.gif", details: "This visual was made by MULE in a software called Processing. Through the songs, there are a number of different acts tied together by different symbols and colors, which the lights also are meant to reflect."},
-                ]
-    },
-    {
-        title: "Pixel Magazine Release Party",
-        description: "Stella collaborated with Pixel Magazine to produce a visual for their 2024 magazine release party. Working under a tight deadline, she created the visual and assisted with event setup in just a few hours. The visual was well-received by attendees, who were excited to learn that Stella was behind the creation. Her quick thinking and creative skills helped enhance the event’s atmosphere. The graphic was modeled, animated, and rendered in Blender.",
-        images: [
-            {src: "pixel1.jpg", details: "Painted Pixel Magazine mascots in front of the Pixel visual."},
-            {src: "pixel2.png", details: "Pixel Magazine visual wideshot."}
-                ]
-    },
-    {
-        title: "Tarot Card Illustration Set",
-        description: "Stella has been designing and illustrating a custom tarot deck, blending traditional symbols and meanings with personal symbolism and references. Each card is designed to reflect her perspective and experiences while honoring the essence of traditional tarot. The entire deck is illustrated using Procreate. The cards shown below in order are as follows: The Tower, The Star, The Lovers, Justice, Death, The Wheel of Fortune, The Devil, and The Hierophant.",
-        images: [
-            {src: "tarot1.png", details: "On the left, The Tower. This card was inspired by a blend of bothic architecture and traditional Japanese paintings. On the right, The Star. This card was inspired by the original symbols of the 7 elemental chakras. The Greek around the star spells out 'Reincarnation'-- one of the interpretations of the card."},
-            {src: "tarot2.png", details: "On the left, The Lovers. This card was my take on the traditional Lovers card without a specifically human centered view. On the right, Judgement. This card was a flipped interpretation of the traditional judgement card, taking the original elements like the sword and scale and giving them a new meaning."},
-            {src: "tarot3.png", details: "On the left, Death. On the right, The Wheel of Fortune."},
-            {src: "tarot4.png", details: "On the left, The Devil. Similar to The Lovers card, I took a less human centered view and interpreted the pair affected by the devil as a pair of ferrets. On the right, The Hierophant."}
-                ]
-    },
-    {
-        title: "3D Modeling Studies",
-        description: "Stella has undertaken a series of 3D modeling studies to refine her skills, focusing on various subjects. The dolls and figurines in this collection draw inspiration from Skull Panda dolls, while the miniature car was created as part of an art test for a previous internship. Each piece was fully modeled, textured, and rendered in Blender.",
-        images: [
-            {src: "doll3doll4.png", details: "A still image of my Angel/Devil modeling study. These dolls were inspired by the Skull Panda figurine series by Xiong Miao. All textures and models were made and rendered in Blender."},
-            {src: "doll3doll4.gif", details: "A 360 view of my Angel/Devil modeling study."},
-            {src: "doll2.1.png", details: "A still image of a third model made inspired by Xiong Miao. All textures and models were made and rendered in Blender."},
-            {src: "doll2.2.png", details: "A close up shot of the image to the left."},
-            {src: "tinycar.png", details: "This tiny car model was created in an art test for Level Up Studio from an image provided by the company. The textures and model were created in Blender."},
-            {src: "tinycar.gif", details: "A 360 view of the tiny car model."}
-                ]
-    },
-    {
-        title: "WHY? Music Video",
-        description: "In the spring of 2024, Stella collaborated with Scott Fredette, Ben Nicholson, Yoni Wolf, and other students from Miami University to create content and program lighting for the 'G-dzillah G’dolah' music video. She developed over 100 visual concepts inspired by the song, many of which were featured in the final production. During the shoot, Stella worked closely with Scott's lighting designer to program the lighting for each shot, ensuring the visuals and lighting seamlessly complemented the music and overall aesthetic.",
-        images: [
-            {src: "concept1.png", details: "The first of the two concepts I proposed that ended up in the final takes. This concept had to do with experimental backlit figures. I wanted their sillouettes to glow and embody their movement."},
-            {src: "concept1output.png", details: "This concept ended up being used in tandem with a feedback concept to create added silhouettes to the dancers who performed for this shoot."},
-            {src: "concept3.png", details: "This concept was the second concept I proposed that ended up being approved. Once the concept was approved, it was handed off to West Cannon who executed the project flawlessly in Notch."},
-            {src: "concept3output.png", details: "Here's a shot of the final video of the warping tunnel concept, excecuted in Notch by West Cannon, a very talented motion designer I had the pleasure to work with."},
-            {src: "lightingdemo.gif", details: "A quick demo of shots from the music video, whih can also be seen on WHY?'s official Youtube channel. I had the chance to program and run the lighting for all the shots in the music video, under heavy direction from Scott Fredette and Jason Nix."},
-            {src: "ggyoutube.png", details: "A screencap of the music video on Youtube."}
-                ]
-    },
-            /*
-    {
-        title: "Miami University Games + Sim Arcade Machine",
-        description: "This is a description of Project 2.",
-        images: [
-            {src: "image1.jpg", details: "Words words words"},
-            {src: "image2.jpg", details: "Words words words"},
-            {src: "image3.jpg", details: "Words words words"},
-            {src: "image4.jpg", details: "Words words words"}
-                ]
-    },       
-            */
-    
-    // Add more projects here if needed
-];
-
-function populateProjects() {
-    const projectsContainer = document.getElementById('projects-container');
-
-    projects.forEach((project, index) => {
-        const projectDiv = document.createElement('div');
-        projectDiv.classList.add('project');
-
-        const titleDiv = document.createElement('div');
-        titleDiv.classList.add('project-title');
-        titleDiv.textContent = project.title;
-        titleDiv.addEventListener('click', () => toggleDetails(index));
-        projectDiv.appendChild(titleDiv);
-
-        const detailsDiv = document.createElement('div');
-        detailsDiv.classList.add('project-details');
-        const descriptionP = document.createElement('p');
-        descriptionP.textContent = project.description;
-        detailsDiv.appendChild(descriptionP);
-
-        const imagesDiv = document.createElement('div');
-        imagesDiv.classList.add('project-images');
-        project.images.forEach((image) => {
-            const imageWrapper = document.createElement('div');
-            imageWrapper.classList.add('image-wrapper');
-            imageWrapper.style.position = 'relative';
-
-            const img = document.createElement('img');
-            img.src = image.src;
-            img.alt = `${project.title} Image`;
-            img.style.width = '100%';
-            img.style.borderRadius = '0.5vw';
-
-            const imagedetails = document.createElement('div');
-            imagedetails.classList.add('imagedetails');
-            imagedetails.textContent = image.details;
-            imagedetails.style.position = 'absolute';
-            imagedetails.style.bottom = '0vh';
-            imagedetails.style.right = '0vw;';
-            imagedetails.style.color = 'white';
-            imagedetails.style.padding = '0.5vw';
-            imagedetails.style.borderRadius = '0.3vw';
-            imagedetails.style.fontSize = '0.9vw';
-            imagedetails.style.opacity = '0';
-            imagedetails.style.transition = 'opacity 0.3s ease';
-
-            imageWrapper.appendChild(img);
-            imageWrapper.appendChild(imagedetails);
-
-            // hover event listeners, waiting for the mouse to hover over
-            imageWrapper.addEventListener('mouseenter', () => {
-                img.style.filter = 'brightness(50%)';
-                imagedetails.style.opacity = '1';
-            });
-
-            imageWrapper.addEventListener('mouseleave', () => {
-                img.style.filter = 'brightness(100%)';
-                imagedetails.style.opacity = '0';
-            });
-
-            imagesDiv.appendChild(imageWrapper);
-        });
-
-        detailsDiv.appendChild(imagesDiv);
-        projectDiv.appendChild(detailsDiv);
-        projectsContainer.appendChild(projectDiv);
-    });
-}
-
-
-    function toggleDetails(index) {
-        const allDetails = document.querySelectorAll('.project-details');
-        allDetails.forEach((details, idx) => {
-            if (idx === index) {
-                details.classList.toggle('active');
-            } else {
-                details.classList.remove('active');
-            }
-        });
-        updateStarReactions();
-    }
-
-        function initStars() {
-            for (let i = 0; i < numStars; i++) {
-                const radius = (Math.random() * 5 + 3) * 6; // star size I think
-                const x = Math.random() * canvas.width;
-                const y = Math.random() * canvas.height;
-                const speedY = (Math.random() * 0.1 + 0.05) * (50 / radius);
-
-                stars.push(new Star(x, y, radius, speedY));
-            }
-        }
-
-        function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            stars.forEach(star => {
-                star.update();
-                star.draw();
-            });
-
-            requestAnimationFrame(animate);
-        }
-
-        function updateStarReactions() {
-            const activeDropdown = document.querySelector('.project-details.active');
-
-            if (activeDropdown) {
-                const dropdownRect = activeDropdown.getBoundingClientRect();
-                stars.forEach(star => star.repel(dropdownRect));
-            }
-        }
-
-        window.addEventListener('resize', () => {
-            resizeCanvas();
-            stars.forEach(star => {
-                star.x = Math.random() * canvas.width;
-                star.y = Math.random() * canvas.height;
-            });
-        });
-
-        document.getElementById('projects-container').addEventListener('click', () => {
-            setTimeout(updateStarReactions, 500); // starReaction movement speed
-        });
-
-        initStars();
-        animate();
-        populateProjects();
-    </script>
-</body>
+	</body>
 </html>
