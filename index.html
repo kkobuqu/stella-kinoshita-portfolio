@@ -11,7 +11,7 @@ if (matchMedia('(min-aspect-ratio: 3/2) and (min-width: 1000px)').matches) docum
 <meta property="og:title" content="Stella Kinoshita — Art Director + Real-Time Designer">
 <meta property="og:description" content="Art director and real-time designer. Notch, content direction and previsualization for live concert visuals.">
 <meta property="og:type" content="website">
-<link rel="icon" href="assets/photos/favi.png" type="image/png">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <!-- start fetching what the first screen needs straight away -->
 <link rel="preload" href="assets/fonts/BeautyDemo.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="preload" href="assets/fonts/palr45w.ttf" as="font" type="font/ttf" crossorigin>
@@ -207,8 +207,11 @@ if (matchMedia('(min-aspect-ratio: 3/2) and (min-width: 1000px)').matches) docum
   .skills li { font-size: calc(1.04cqw * var(--t, 1)); line-height: 1.5; letter-spacing: .04em; padding: .15cqw 0; break-inside: avoid; }
   .skills .tech ul { columns: 2; column-gap: 2.4cqw; }
   .tagline { position: absolute; z-index: 2; left: 0; right: 0; text-align: center; top: 36cqw; font-size: calc(3.6cqw * var(--t, 1)); line-height: 1; text-shadow: 0 2px 10px rgba(0,0,0,.7); }
+  .bio { position: absolute; z-index: 2; left: 50%; translate: -50% 0; width: 50cqw; top: 15cqw; text-align: center; text-shadow: 0 1px 8px rgba(0,0,0,.85); }
+  .bio p { font-size: calc(1.55cqw * var(--t, 1)); line-height: 1.7; letter-spacing: .03em; }  .tagline .dash { display: inline-block; width: .32em; height: .045em; min-height: 1.5px; background: currentColor; border-radius: 1em; margin-right: .18em; vertical-align: .32em; }
   @media (max-aspect-ratio: 1/1) {
-    #about { aspect-ratio: 16 / 27; }                    /* three frames tall on phones so the skills can be read */
+    #about { aspect-ratio: 16 / 20; }                    /* a little over two frames tall on phones so the text can be read */
+    .bio { top: 20cqw; width: 84cqw; } .bio p { font-size: calc(3.1cqw * var(--t, 1)); }
     .skills { top: 19cqw; left: 6cqw; right: 6cqw; translate: none; width: auto; max-width: none; grid-template-columns: 1fr 1fr; gap: 5cqw 4cqw; }
     .skills .creative { grid-column: 1; grid-row: 1; } .skills .production { grid-column: 2; grid-row: 1; } .skills .tech { grid-column: 1 / -1; grid-row: 2; }
     .skills h3 { font-size: calc(6.8cqw * var(--t, 1)); }
@@ -277,6 +280,7 @@ html.split .col-l, html.split .col-r { width: 50%; height: 100%; overflow-y: aut
 html.split .col-l::-webkit-scrollbar, html.split .col-r::-webkit-scrollbar { display: none; }
 html.split .page { scroll-margin-top: max(0px, calc((100svh - 28.125vw) / 2)); }
 /* About stays ONE frame: its text is scaled by --ta (20% less than the other pages' --t) so the skills + tagline + contact fit */
+html.split .bio p { font-size: calc(1.55cqw * var(--ta, 1)); }
 html.split .skills h3 { font-size: calc(2.5cqw * var(--ta, 1)); }
 html.split .skills li { font-size: calc(1.04cqw * var(--ta, 1)); }
 html.split .tagline { top: 38cqw; font-size: calc(3.6cqw * var(--ta, 1)); }
@@ -359,16 +363,10 @@ html.split .loader.rise .ld-art { top: 0; left: 0; }
     <div class="layer drift tr"><img src="assets/5.webp" alt="" draggable="false"></div>
     <div class="layer drift bl"><img src="assets/4.webp" alt="" draggable="false"></div>
     <div class="label tl"><h2 class="script">About</h2></div>
-    <div class="skills">
-      <div class="col creative"><h3 class="script">Creative</h3><ul>
-        <li>Creative Direction</li><li>Creative Pitch Development</li><li>Visual Storytelling</li><li>Motion Design</li><li>Content Development</li><li>Client Presentations</li><li>Art Direction Collaboration</li></ul></div>
-      <div class="col tech"><h3 class="script">Technical</h3><ul>
-        <li>Notch</li><li>Blender</li><li>Adobe After Effects</li><li>Adobe Premiere Pro</li><li>Figma</li><li>Procreate</li><li>UV Remapping</li>
-        <li>3D Asset Creation</li><li>Digital Screen &amp; Stage Preparation</li><li>Previsualization Workflows</li><li>Basic Disguise Integration</li><li>Basic Python</li><li>HTML/CSS/JavaScript</li></ul></div>
-      <div class="col production"><h3 class="script">Production</h3><ul>
-        <li>Live Event Production</li><li>Assistant Screens Producing</li><li>File Management</li><li>Organization</li><li>Cross-functional Collaboration</li><li>Google Workspace</li><li>Notion</li></ul></div>
+    <div class="bio">
+      <p>Stella Kinoshita is currently a Content Director and Real-Time Designer with experience developing real-time visual content for live entertainment and touring productions. Skilled in Notch, motion design, creative direction, and content deployment, with a strong background in collaborative production workflows.</p>
     </div>
-    <p class="tagline script">In it for the art.</p>
+    <p class="tagline script"><span class="dash" aria-hidden="true"></span>sk</p>
     <div class="label br" id="contact">
       <h2 class="script">Contact</h2>
       <a class="caps" href="mailto:kinoshitastella@gmail.com">kinoshitastella@gmail.com</a>
