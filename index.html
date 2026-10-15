@@ -1,0 +1,798 @@
+<!doctype html>
+<html lang="en" class="loading">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stella Kinoshita — Art Director + Real-Time Designer</title>
+<meta name="description" content="Stella Kinoshita — art director and real-time designer. Notch, content direction and previsualization for live concert visuals.">
+<meta name="theme-color" content="#000000">
+<script>/* decide the layout before first paint: 5:4 or wider -> two side-by-side strips */
+if (matchMedia('(min-aspect-ratio: 3/2) and (min-width: 1000px)').matches) document.documentElement.classList.add('split');</script>
+<meta property="og:title" content="Stella Kinoshita — Art Director + Real-Time Designer">
+<meta property="og:description" content="Art director and real-time designer. Notch, content direction and previsualization for live concert visuals.">
+<meta property="og:type" content="website">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<!-- start fetching what the first screen needs straight away -->
+<link rel="preload" href="assets/fonts/BeautyDemo.ttf" as="font" type="font/ttf" crossorigin>
+<link rel="preload" href="assets/fonts/palr45w.ttf" as="font" type="font/ttf" crossorigin>
+<link rel="preload" href="assets/6.webp" as="image" type="image/webp">
+<link rel="preload" href="assets/3.webp" as="image" type="image/webp">
+<link rel="preload" href="assets/2.webp" as="image" type="image/webp">
+<link rel="preload" href="assets/photos/hero-red.webp" as="image" type="image/webp">
+<style>
+  @font-face { font-family: "Beauty"; src: url(assets/fonts/BeautyDemo.ttf) format("truetype"); font-display: swap; }
+  @font-face { font-family: "Palatino"; src: url(assets/fonts/palr45w.ttf) format("truetype"); font-display: swap; }
+
+  :root {
+    --bg: #000;            /* page background (visible in the side margins on wide screens) */
+    --line: #fff;
+    --mx: 0; --my: 0;      /* pointer position, -0.5 .. 0.5 (smoothed in JS) */
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: auto; }
+  html, body { background: var(--bg); }
+  body { color: var(--line); font-family: "Palatino", "Palatino Linotype", serif; overflow-x: hidden; }
+
+
+  /* Film strip: the black frame repeats vertically at its native 16:9 proportions.
+     Every .page is exactly one frame tall. Nothing is ever stretched - all sizes are uniform. */
+  /* On wide screens the strip is capped (frame height ~70% of the viewport) and centred on the background
+     colour, so it reads as a vertical film strip with the next frame peeking in below. */
+  .strip { width: 100%; margin: 0 auto;      /* the frame scales with the window (no side bars); very wide + big windows switch to two strips instead */
+           background: url(assets/6.webp) 0 0 / 100% auto repeat-y; min-height: 100svh; }
+
+  .page {
+    position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden;
+    scroll-margin-top: max(0px, calc((100svh - 56.25vw) / 2));   /* anchor jumps centre the frame */
+    container-type: inline-size;         /* lets text size with the page: 1cqw = 1% of page width */
+  }
+
+  /* Layer stack inside a page:  photo  <  black film frame  <  art / text */
+  .photo {
+    position: absolute; inset: 0; z-index: 0;
+    background: #000 none var(--pos, center) / cover no-repeat;      /* black until the photo is loaded (photos load lazily, see .ready) */
+    filter: brightness(var(--dim, 1));
+    transform: translate(calc(var(--mx) * -.6cqw), calc(var(--my) * -.4cqw + var(--sy, 0) * -1cqw)) scale(1.04);
+  }
+  .shade { position: absolute; inset: 0; z-index: 0; background: radial-gradient(ellipse at center, rgba(0,0,0,.05), rgba(0,0,0,.45)); }
+  .filmframe { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; pointer-events: none; }
+
+  .layer { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; pointer-events: none; user-select: none; -webkit-user-drag: none;
+            /* soft shadow so the white linework lifts off the photos (same look as the text shadow) */
+            filter: drop-shadow(0 0 .2cqw rgba(0,0,0,.55)) drop-shadow(0 .15cqw .6cqw rgba(0,0,0,.7)); }
+  /* illustrations drift with mouse + scroll; the name group moves as ONE piece so name + filigree never separate */
+  /* corner emblems: the wrapper moves (cheap, GPU), the inner image carries the shadow */
+  div.layer { filter: none; }
+  .layer > img { position: absolute; inset: 0; width: 100%; height: 100%; user-select: none; -webkit-user-drag: none;
+                 filter: drop-shadow(0 0 .2cqw rgba(0,0,0,.55)) drop-shadow(0 .15cqw .6cqw rgba(0,0,0,.7)); }
+  .photo.ready { background-image: var(--img); }
+  .page.live .drift, .page.live .photo { will-change: transform; }   /* GPU layers only for pages near the screen (saves memory) */
+  .drift { transform: translate(calc(var(--mx) * 1cqw), calc(var(--my) * .7cqw + var(--sy, 0) * 1.6cqw)); }
+  .group { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+
+  /* Fonts */
+  .script { font-family: "Beauty", cursive; font-weight: normal; }
+  .caps { font-family: "Palatino", serif; text-transform: uppercase; letter-spacing: .08em; }
+
+  .subtitle {
+    position: absolute; left: 0; right: 0; top: 27.5%; text-align: center;
+    font-size: calc(1.05cqw * var(--t, 1)); letter-spacing: .28em; text-transform: uppercase; text-shadow: 0 1px 6px rgba(0,0,0,.8);
+  }
+
+  /* ---------- Opportunities (table of contents) ---------- */
+  .toc { position: absolute; inset: 0; z-index: 2; }
+  .toc h2 { position: absolute; left: 0; right: 0; top: 8%; text-align: center; font-size: calc(5cqw * var(--t, 1)); text-shadow: 0 2px 10px rgba(0,0,0,.7); }
+
+  /* Each section shows only its cursive title. On hover the title "unwrites" (erased right-to-left) and the
+     serif names fade in line by line in its place. Touch: tap a title to toggle (.open). */
+  .sec { position: absolute; text-shadow: 0 1px 8px rgba(0,0,0,.85); outline: none; }
+  .sec.a { left: 13%; top: 30%; }  .sec.b { left: 57%; top: 30%; }
+  .sec.c { left: 13%; top: 62%; }  .sec.d { left: 57%; top: 62%; }
+  .sec h3 { font-size: calc(4cqw * var(--t, 1)); line-height: 1.15; white-space: nowrap; cursor: default;
+            clip-path: inset(-30% 100% -30% -10%); opacity: 0; filter: blur(2px);
+            transition: clip-path .75s cubic-bezier(.6,0,.3,1) .35s, opacity .6s ease .35s, filter .6s ease .35s; }
+  /* names sit over the title (they don't change the section's size); only clickable while revealed */
+  .sec .names { position: absolute; left: 0; top: 0; list-style: none; padding: 0; white-space: nowrap; pointer-events: none; }
+  /* a short paragraph instead of a list of names (used by Previsualizations): resolves out of a blur on hover, like the credits */
+  .sec .desc { position: absolute; left: 0; top: 0; width: calc(36cqw * var(--t, 1) / 1.1); pointer-events: none; opacity: 0; filter: blur(6px); letter-spacing: .02em; line-height: 1.65;
+               color: #b4b4b4;   /* soft grey, not pure white */
+               font-size: calc(1.35cqw * var(--t, 1)); text-shadow: 0 1px 8px rgba(0,0,0,.9); transition: opacity .35s ease, filter .35s ease; }
+  .sec .desc p { margin: 0; }
+  .sec.open .desc, .sec:focus-within .desc { opacity: 1; filter: blur(0); pointer-events: auto; transition: opacity 1.2s ease .35s, filter 1.2s ease .35s; }
+  @media (hover: hover) { .sec:hover .desc { opacity: 1; filter: blur(0); pointer-events: auto; transition: opacity 1.2s ease .35s, filter 1.2s ease .35s; } }
+  /* Movie-credit fade: each name resolves out of a soft blur while its letter-spacing settles, one after another. */
+  .sec .names li { padding: .4cqw 0; opacity: 0; filter: blur(6px); letter-spacing: .42em;
+                   transition: opacity .35s ease, filter .35s ease, letter-spacing .35s ease; }
+  /* Hover on a name: it glows and the other names dim (no scaling, no underline) */
+  .sec .names a { position: relative; color: inherit; text-decoration: none; font-size: calc(1.7cqw * var(--t, 1)); display: inline-block;
+                  transition: text-shadow .3s ease, opacity .3s ease; }
+  .sec .names a:hover { text-shadow: 0 0 1.2cqw rgba(255,255,255,.9), 0 0 .35cqw rgba(255,255,255,.8), 0 1px 8px rgba(0,0,0,.85); }
+  .sec .names:hover a:not(:hover) { opacity: .35; }
+
+  /* title is written in once the page is on screen (staggered only on first entry) */
+  .toc.in .sec h3 { clip-path: inset(-30% -10% -30% -10%); opacity: 1; filter: none; }
+  .toc.fresh .sec.a h3 { transition-delay: .3s, .3s, .3s; } .toc.fresh .sec.b h3 { transition-delay: .55s, .55s, .55s; }
+  .toc.fresh .sec.c h3 { transition-delay: .8s, .8s, .8s; } .toc.fresh .sec.d h3 { transition-delay: 1.05s, 1.05s, 1.05s; }
+
+  /* revealed state: title erased, names in, line by line */
+  .toc.in .sec.open h3, .toc.in .sec:focus-within h3 { clip-path: inset(-30% 100% -30% -10%); opacity: 0; filter: blur(2px); transition-delay: 0s, .2s, .2s; transition-duration: .7s, .5s, .5s; }
+  .sec.open .names, .sec:focus-within .names { pointer-events: auto; }
+  .sec.open .names li, .sec:focus-within .names li { opacity: 1; filter: blur(0); letter-spacing: .16em; transition: opacity .9s ease, filter .9s ease, letter-spacing 1.4s cubic-bezier(.2,.7,.3,1); transition-delay: calc(.3s + var(--i) * .33s); }
+  @media (hover: hover) {
+    .toc.in .sec:hover h3 { clip-path: inset(-30% 100% -30% -10%); opacity: 0; filter: blur(2px); transition-delay: 0s, .2s, .2s; transition-duration: .7s, .5s, .5s; }
+    .sec:hover .names { pointer-events: auto; }
+    .sec:hover .names li { opacity: 1; filter: blur(0); letter-spacing: .16em; transition: opacity .9s ease, filter .9s ease, letter-spacing 1.4s cubic-bezier(.2,.7,.3,1); transition-delay: calc(.3s + var(--i) * .33s); }
+  }
+
+  /* Contact block: bottom-right corner (opposite the bottom-left emblem) */
+  .label.br { display: flex; flex-direction: column; place-content: unset; align-items: flex-end; justify-content: flex-end;
+              padding: 0 6cqw 5.5cqw 0; text-align: right; }
+  .label.br h2 { font-size: calc(4cqw * var(--t, 1)); line-height: 1; margin-bottom: 1cqw; }
+  .label.br a { color: inherit; text-decoration: none; font-size: calc(1.2cqw * var(--t, 1)); letter-spacing: .16em; padding: .35cqw 0; position: relative; }
+  .label.br a::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: #fff; transform: scaleX(0); transform-origin: right; transition: transform .4s ease; }
+  .label.br a:hover::after { transform: scaleX(1); transform-origin: left; }
+  .label.br { pointer-events: none; } .label.br a { pointer-events: auto; }
+
+  /* Artist / detail pages + placeholder pages */
+  .label { position: absolute; inset: 0; z-index: 2; display: grid; place-content: center; text-align: center; text-shadow: 0 2px 10px rgba(0,0,0,.7); }
+  .label h2 { font-size: calc(6cqw * var(--t, 1)); }
+  .label p { margin-top: .6cqw; font-size: calc(1cqw * var(--t, 1)); letter-spacing: .2em; opacity: .85; }
+  /* Title top-left, leaving the rest of the frame free for project images / video */
+  .label.tl { display: block; place-content: start; padding: 5.5cqw 0 0 6cqw; text-align: left; }
+  .label.tc { display: block; place-content: start; padding: 5.5cqw 0 0; text-align: center; }   /* title top-centre (pages with the bottom-left emblem) */
+  .label.tl h2, .label.tc h2 { font-size: calc(5.5cqw * var(--t, 1)); line-height: 1; }
+  .label.tl p, .label.tc p { margin-top: .9cqw; }
+
+  /* Real photos (--pos = which part stays in view when cropped to 16:9) */
+  .ph-hero   { --img: url(assets/photos/hero-red.webp);      --pos: 50% 36%; }   /* portrait photo: keeps the light rig at the top of the frame */
+  .ph-green  { --img: url(assets/photos/green-lasers.webp);  --pos: 50% 50%; }
+  .ph-badomens { --img: url(assets/photos/bad-omens-main.webp);  --pos: 50% 50%; }
+  .ph-renee { --img: url(assets/photos/renee-rapp.webp); --pos: 50% 31%; }   /* portrait photo: crop keeps her head with headroom */
+  .ph-griz { --img: url(assets/photos/griz.webp); --pos: 50% 46%; }   /* portrait photo: keeps the ring lights, fireworks and jump in frame */
+  .ph-melanie { --img: url(assets/photos/melanie-martinez.webp); --pos: 50% 70%; }   /* portrait photo: keeps her head with headroom down to her feet */
+  .ph-martin { --img: url(assets/photos/martin-garrix-lights.webp); --pos: 50% 50%; }
+  @media (max-aspect-ratio: 1/1) {
+    .subtitle { font-size: calc(1.5cqw * var(--t, 1)); }
+    .sec .names a { font-size: calc(1.5cqw * var(--t, 1)); }
+    .label p { font-size: calc(1.5cqw * var(--t, 1)); }
+    /* on phones, anchor jumps land the frame near the top of the screen rather than centred */
+    .page { scroll-margin-top: 10svh; }
+  }
+  /* ---------- Artist pages: legibility gradient + three media thumbnails (hover = video) ---------- */
+  .grad { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+  .grad-tl { background: linear-gradient(90deg, rgba(0,0,0,.72) 0%, rgba(0,0,0,.4) 28%, rgba(0,0,0,0) 58%); }                       /* title top-left: darkens from the left */
+  .grad-tc, .grad-center { background: linear-gradient(180deg, rgba(0,0,0,.72) 0%, rgba(0,0,0,.35) 26%, rgba(0,0,0,0) 52%); }       /* title top-centre: darkens from the top */
+  /* one column, centred in the space BELOW the title text (the title block is about 6.4cqw + 6.5cqw*--t tall, plus a gap) down to the bottom of the frame */
+  .shots { position: absolute; z-index: 3; top: calc(8.9cqw + 6.5cqw * var(--t, 1)); bottom: 5cqw; display: flex; flex-direction: column; justify-content: center; gap: 1.3cqw; }
+  .shots.dual { top: calc(11.4cqw + 6.5cqw * var(--t, 1)); }                                                                            /* last page with both corner emblems: start a little lower, below the top-right one */
+  .shots.at-left { left: 6cqw; } .shots.at-right { right: 10cqw; }                                                                     /* left title -> left side; centre title -> centre-right */
+  /* thumbnail size = as big as fits in the column space (page height minus the title area and bottom margin), with a small safety margin (x .96) */
+  .shot { position: relative; margin: 0; width: calc((23.56cqw - 3.852cqw * var(--t, 1)) * .96); aspect-ratio: 16 / 9; overflow: hidden; background: #0a0a0a; cursor: none; }
+  .shots.n2 .shot { width: min(21cqw, calc((36.49cqw - 5.78cqw * var(--t, 1)) * .96)); }                                                 /* two thumbnails: noticeably larger (capped so they stay tidy) */
+  .shots.n4 .shot { width: calc((17.09cqw - 2.889cqw * var(--t, 1)) * .96); }                                                            /* four thumbnails: same idea, four per column */
+  /* the page's background video (plays in place of the photo while a thumbnail is hovered; same crop + movement as the photo) */
+  .bgvid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; opacity: 0; transition: opacity .5s ease; pointer-events: none;
+           transform: translate(calc(var(--mx) * -.6cqw), calc(var(--my) * -.4cqw + var(--sy, 0) * -1cqw)) scale(1.04); }
+  .bgvid.show { opacity: 1; }
+  .bgvid.cut { transition: none; }       /* instant swap between clips (no photo showing through) */
+  .page.live .bgvid { will-change: transform; }
+  .shot .still { position: absolute; inset: 0; background: #111 no-repeat; background-size: 280%; transition: transform .7s ease; }   /* placeholder = zoomed crops of the page photo */
+  .shot.s1 .still { background-position: 12% 45%; } .shot.s2 .still { background-position: 50% 50%; } .shot.s3 .still { background-position: 88% 55%; }
+  .page:has(.photo.ready) .shot .still { background-image: var(--img); }                                                                 /* (a real still set inline wins over this) */
+  .shot video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .35s ease; }
+  .shot.on video.show { opacity: 1; }
+  .shots .shot .still.img { background-size: cover; background-position: center; }     /* real photos: show the whole picture (only the placeholders are zoomed crops) */
+  .shot.on .still { transform: scale(1.06); }
+  .shot .vid-ph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: calc(.8cqw * var(--t, 1)); letter-spacing: .3em; background: rgba(0,0,0,.5);
+                  opacity: 0; transition: opacity .3s ease; pointer-events: none; }
+  .shot .vid-ph::before { content: ""; border-style: solid; border-width: .45cqw 0 .45cqw .75cqw; border-color: transparent transparent transparent #fff; margin-right: .7cqw; }
+  .shot.on:not(.has-video):not(.drives):not(.playing) .vid-ph { opacity: 1; }
+  .shots.real .vid-ph { display: none; }      /* pages with real media never show the "Video" placeholder label (e.g. the last photo does nothing on its own) */
+  /* maximised video */
+  .lightbox { position: fixed; inset: 0; z-index: 9500; background: rgba(0,0,0,.9); display: grid; place-items: center; }
+  .lightbox video { max-width: 92vw; max-height: 86vh; background: #000; box-shadow: 0 0 40px rgba(0,0,0,.8); }
+  .lb-x { position: absolute; top: 2.2vh; right: 2.2vw; background: none; border: 0; color: #fff; font-size: 14px; letter-spacing: .3em; padding: 10px; }
+  /* frame slot (no border for now): swap in the illustrated white frame by setting  --shot-frame: url(assets/your-frame.webp)  on :root (it is drawn over each image/video) */
+  .shot-frame { position: absolute; inset: 0; pointer-events: none; background: var(--shot-frame, none) center / 100% 100% no-repeat; }
+
+  /* ---------- About: skills + tagline ---------- */
+  .filmframe.tiles { background: url(assets/6.webp) 0 0 / 100% auto repeat-y; }           /* frame tiles (never stretched) if the page is taller than one frame */
+  .layer.tr { bottom: auto; height: auto; aspect-ratio: 16 / 9; }                          /* emblems keep their 16:9 canvas: one pinned top, one bottom */
+  .layer.bl { top: auto; height: auto; aspect-ratio: 16 / 9; }
+  /* whole block is 20% smaller than the first version (width, type, spacing) */
+  .skills { position: absolute; z-index: 2; left: 50%; translate: -50% 0; width: max-content; max-width: 88cqw; top: 15cqw;   /* centred on the page */
+            display: grid; grid-template-columns: repeat(3, auto); gap: 0 4.5cqw; text-shadow: 0 1px 8px rgba(0,0,0,.85); }
+  .skills h3 { font-size: calc(2.5cqw * var(--t, 1)); line-height: 1.1; font-weight: normal; letter-spacing: .02em; padding-bottom: .6cqw; margin-bottom: .7cqw; border-bottom: 1px solid rgba(255,255,255,.35); }
+  .skills ul { list-style: none; padding: 0; margin: 0; }
+  .skills li { font-size: calc(1.04cqw * var(--t, 1)); line-height: 1.5; letter-spacing: .04em; padding: .15cqw 0; break-inside: avoid; }
+  .skills .tech ul { columns: 2; column-gap: 2.4cqw; }
+  .tagline { position: absolute; z-index: 2; left: 0; right: 0; text-align: center; top: 36cqw; font-size: calc(3.6cqw * var(--t, 1)); line-height: 1; text-shadow: 0 2px 10px rgba(0,0,0,.7); }
+  @media (max-aspect-ratio: 1/1) {
+    #about { aspect-ratio: 16 / 27; }                    /* three frames tall on phones so the skills can be read */
+    .skills { top: 19cqw; left: 6cqw; right: 6cqw; translate: none; width: auto; max-width: none; grid-template-columns: 1fr 1fr; gap: 5cqw 4cqw; }
+    .skills .creative { grid-column: 1; grid-row: 1; } .skills .production { grid-column: 2; grid-row: 1; } .skills .tech { grid-column: 1 / -1; grid-row: 2; }
+    .skills h3 { font-size: calc(6.8cqw * var(--t, 1)); }
+    .skills li { font-size: calc(2.4cqw * var(--t, 1)); }
+    .tagline { top: auto; bottom: 27cqw; font-size: calc(6.5cqw * var(--t, 1)); }
+    .label.br h2 { font-size: calc(7cqw * var(--t, 1)); } .label.br a { font-size: calc(2.2cqw * var(--t, 1)); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .photo { transform: scale(1.04) !important; } .drift { transform: none !important; }
+    .sec h3, .sec .rule, .sec .names { transition: none !important; }
+  }
+  /* Text selection: semi-transparent black instead of the default blue */
+  ::selection { background: rgba(0,0,0,.6); color: #fff; }
+  ::-moz-selection { background: rgba(0,0,0,.6); color: #fff; }
+
+  /* Custom cursor: small dot that morphs into an empty ring over anything clickable (fine pointers only) */
+  @media (hover: hover) and (pointer: fine) {
+    html.has-cursor, html.has-cursor * { cursor: none !important; }
+    .cursor { position: fixed; left: 0; top: 0; z-index: 9999; pointer-events: none; width: 0; height: 0; opacity: 0; transition: opacity .3s ease; }
+    .cursor.show { opacity: 1; }
+    .cursor i { position: absolute; left: 0; top: 0; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%;
+                background: #fff; border: 1.5px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 0 8px rgba(0,0,0,.5);
+                transition: width .3s cubic-bezier(.3,1.5,.5,1), height .3s cubic-bezier(.3,1.5,.5,1), margin .3s cubic-bezier(.3,1.5,.5,1),
+                            background-color .25s ease, border-width .25s ease, transform .15s ease; }
+    .cursor.link i { width: 20px; height: 20px; margin: -10px 0 0 -10px; border-width: 3.5px; background-color: rgba(255,255,255,0); }
+    .cursor.down i { transform: scale(.75); }
+  }
+  @media not all and (hover: hover) and (pointer: fine) { .cursor { display: none; } }
+  /* ---------- Intro: film leader - the draw-in IS the loading bar: filigree grows from the corners, then the name writes on ---------- */
+  html.loading, html.loading body { overflow: hidden; }
+  @property --r { syntax: '<length>'; inherits: false; initial-value: 0px; }
+  @property --w { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
+  .loader { position: fixed; inset: 0; z-index: 9990; background: #000; overflow: hidden; transition: opacity 1s ease; }
+  .loader.out { opacity: 0; pointer-events: none; }
+  /* everything lives in a stage the same width as the site (capped like .strip); art sits exactly where the title page's art does */
+  .ld-stage { position: absolute; top: 0; bottom: 0; left: 0; width: 100%; translate: none; overflow: hidden; container-type: size; }
+  .ld-stage > * { position: absolute; pointer-events: none; }
+
+  /* your artwork: same 16:9 canvas + position as the title page, so the fade-out lands exactly on the real thing */
+  /* while loading the art sits in the vertical centre of the screen; once loaded it rises to the title page's position (top of the strip), then the page fades in */
+  .ld-art { top: max(0px, calc((100cqh - 56.25cqw) / 2)); left: 0; width: 100%; aspect-ratio: 16 / 9; container-type: inline-size;
+            transition: top .95s cubic-bezier(.6, 0, .25, 1), left .95s cubic-bezier(.6, 0, .25, 1); }
+  .loader.rise .ld-art { top: 0; }
+  .ld-art img { position: absolute; inset: 0; width: 100%; height: 100%; user-select: none; -webkit-user-drag: none;
+                filter: drop-shadow(0 0 .2cqw rgba(0,0,0,.55)) drop-shadow(0 .15cqw .6cqw rgba(0,0,0,.7)); }
+  /* filigree grows in from the four corners */
+  .ld-fil { --r: calc(var(--fp, 0) * 62cqw);   /* --fp: 0..1, set from the real loading progress */
+    -webkit-mask-image: radial-gradient(circle at 0 0, #000 var(--r), transparent calc(var(--r) + 7cqw)), radial-gradient(circle at 100% 0, #000 var(--r), transparent calc(var(--r) + 7cqw)),
+                        radial-gradient(circle at 0 100%, #000 var(--r), transparent calc(var(--r) + 7cqw)), radial-gradient(circle at 100% 100%, #000 var(--r), transparent calc(var(--r) + 7cqw));
+            mask-image: radial-gradient(circle at 0 0, #000 var(--r), transparent calc(var(--r) + 7cqw)), radial-gradient(circle at 100% 0, #000 var(--r), transparent calc(var(--r) + 7cqw)),
+                        radial-gradient(circle at 0 100%, #000 var(--r), transparent calc(var(--r) + 7cqw)), radial-gradient(circle at 100% 100%, #000 var(--r), transparent calc(var(--r) + 7cqw)); }
+  /* name writes on left to right once the filigree is mostly in (--np: 0..1). The mask starts left of the name's first
+     swash (it begins ~26% across the canvas) and the image stays fully hidden until np > 0, so no letter shows early. */
+  .ld-name { --w: calc(15% + var(--np, 0) * 70%); opacity: calc(min(var(--np, 0) * 60, 1));
+    -webkit-mask-image: linear-gradient(90deg, #000 var(--w), transparent calc(var(--w) + 7%));
+            mask-image: linear-gradient(90deg, #000 var(--w), transparent calc(var(--w) + 7%)); }</style>
+<style>
+/* ---------- Wide screens (5:4 and wider): two side-by-side scrolling film strips instead of one centred strip ---------- */
+.cols { display: none; }
+html.split { --t: 1.4; }                /* text scale: each panel is only half the screen wide, so type is scaled up (JS refines the value) */
+html.split, html.split body { height: 100%; overflow: hidden; }
+html.split .strip { display: none; }
+html.split .cols { display: flex; height: 100vh; height: 100svh; width: 100%; }
+html.split .col-l, html.split .col-r { width: 50%; height: 100%; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; outline: none;
+                                       background: url(assets/6.webp) 0 0 / 100% auto repeat-y; }
+html.split .col-l::-webkit-scrollbar, html.split .col-r::-webkit-scrollbar { display: none; }
+html.split .page { scroll-margin-top: max(0px, calc((100svh - 28.125vw) / 2)); }
+/* About stays ONE frame: its text is scaled by --ta (20% less than the other pages' --t) so the skills + tagline + contact fit */
+html.split .skills h3 { font-size: calc(2.5cqw * var(--ta, 1)); }
+html.split .skills li { font-size: calc(1.04cqw * var(--ta, 1)); }
+html.split .tagline { top: 38cqw; font-size: calc(3.6cqw * var(--ta, 1)); }
+html.split .label.br h2 { font-size: calc(4cqw * var(--ta, 1)); }
+html.split .label.br a { font-size: calc(1.2cqw * var(--ta, 1)); }
+/* intro in split mode: art starts centred on the whole screen, then glides left to sit where the left strip's title page is */
+html.split .ld-stage { left: 0; width: 100%; translate: none; }
+html.split .ld-art { width: 50%; left: 25%; top: calc(50cqh - 5.15cqw); }                    /* the NAME sits in the middle of the screen while loading */
+html.split .ld-fil { display: none; }                                                       /* large screens: no filigree drawing in, just the name... */
+html.split .ld-name { --w: calc(15% + var(--p, 0) * 70%); opacity: calc(min(var(--p, 0) * 60, 1)); }   /* ...writing on left to right across the whole load */
+html.split .loader.rise .ld-art { top: 0; left: 0; }
+
+</style>
+<noscript><style>.loader{display:none}html.loading,html.loading body{overflow:auto}.photo{background-image:var(--img)}</style></noscript>
+</head>
+<body>
+<div class="cursor" id="cursor" aria-hidden="true"><i></i></div>
+<div class="loader" id="loader" aria-hidden="true"><div class="ld-stage">
+  <div class="ld-art"><img class="ld-fil" src="assets/3.webp" alt="" draggable="false"><img class="ld-name" src="assets/2.webp" alt="" draggable="false"></div>
+</div></div><main class="strip" id="strip">
+
+  <!-- 1: Title. Filigree + name + subtitle are one moving group. -->
+  <section class="page" id="top">
+    <div class="photo p1 ph-hero"></div><div class="shade"></div>
+    <img class="filmframe" src="assets/6.webp" alt="" draggable="false">
+    <div class="group drift">
+      <img class="layer" src="assets/3.webp" alt="" draggable="false">
+      <img class="layer" src="assets/2.webp" alt="Stella Kinoshita" draggable="false">
+      <p class="subtitle">Art Director + Real-Time Designer</p>
+    </div>
+  </section>
+
+  <!-- 2: Opportunities = table of contents. Names link to their artist page below. -->
+  <section class="page" id="opportunities">
+    <div class="photo p2 ph-green"></div><div class="shade"></div>
+    <img class="filmframe" src="assets/6.webp" alt="" draggable="false">
+    <div class="toc" id="toc">
+      <h2 class="script">Opportunities</h2>
+
+      <div class="sec a" tabindex="0">
+        <h3 class="script">Content Direction</h3>
+        <ul class="names"><li style="--i:0"><a class="caps" href="#martin-garrix">Martin Garrix</a></li></ul>
+      </div>
+
+      <div class="sec b" tabindex="0">
+        <h3 class="script">Camera Artist</h3>
+        <ul class="names">
+          <li style="--i:0"><a class="caps" href="#bad-omens">Bad Omens</a></li>
+          <li style="--i:1"><a class="caps" href="#renee-rapp">Renee Rapp</a></li>
+          <li style="--i:2"><a class="caps" href="#griz">Griz</a></li>
+          <li style="--i:3"><a class="caps" href="#melanie-martinez">Melanie Martinez</a></li>
+        </ul>
+      </div>
+
+      <div class="sec c" tabindex="0">
+        <h3 class="script">Previsualizations</h3>
+        <!-- Previsualizations has no project pages: hovering the title fades in this description instead of a list of names -->
+        <div class="desc">
+          <p>Stage rendering services, as well as developing content previsualization pipelines for content artists to use to previs their artwork before it hits the stage. This process uses a mix of knowledge in Blender, After Effects, and Vectorworks.</p>
+        </div>
+      </div>
+
+      <div class="sec d" tabindex="0">
+        <h3 class="script">Creative Development</h3>
+        <ul class="names">
+          <li style="--i:0"><a class="caps" href="#martin-garrix">Martin Garrix</a></li>
+          <li style="--i:1"><a class="caps" href="#renee-rapp">Renee Rapp</a></li>
+          <li style="--i:2"><a class="caps" href="#griz">Griz</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3..10: one page per artist, generated from this list (edit here) -->
+  <!-- last page: About (top-left) + Contact (bottom-right) together -->
+  <section class="page" id="about">
+    <div class="photo p3"></div><div class="shade"></div>
+    <div class="filmframe tiles"></div>
+    <!-- both corner emblems overlap on this one page: top-right + bottom-left (each keeps its own 16:9 proportions) -->
+    <div class="layer drift tr"><img src="assets/5.webp" alt="" draggable="false"></div>
+    <div class="layer drift bl"><img src="assets/4.webp" alt="" draggable="false"></div>
+    <div class="label tl"><h2 class="script">About</h2></div>
+    <div class="skills">
+      <div class="col creative"><h3 class="script">Creative</h3><ul>
+        <li>Creative Direction</li><li>Creative Pitch Development</li><li>Visual Storytelling</li><li>Motion Design</li><li>Content Development</li><li>Client Presentations</li><li>Art Direction Collaboration</li></ul></div>
+      <div class="col tech"><h3 class="script">Technical</h3><ul>
+        <li>Notch</li><li>Blender</li><li>Adobe After Effects</li><li>Adobe Premiere Pro</li><li>Figma</li><li>Procreate</li><li>UV Remapping</li>
+        <li>3D Asset Creation</li><li>Digital Screen &amp; Stage Preparation</li><li>Previsualization Workflows</li><li>Basic Disguise Integration</li><li>Basic Python</li><li>HTML/CSS/JavaScript</li></ul></div>
+      <div class="col production"><h3 class="script">Production</h3><ul>
+        <li>Live Event Production</li><li>Assistant Screens Producing</li><li>File Management</li><li>Organization</li><li>Cross-functional Collaboration</li><li>Google Workspace</li><li>Notion</li></ul></div>
+    </div>
+    <p class="tagline script">In it for the art.</p>
+    <div class="label br" id="contact">
+      <h2 class="script">Contact</h2>
+      <a class="caps" href="mailto:kinoshitastella@gmail.com">kinoshitastella@gmail.com</a>
+      <a class="caps" href="tel:+19379711923">937.971.1923</a>
+    </div>
+  </section>
+</main>
+
+<script>
+  // ---- Artist pages: edit this list to add/reorder. Corner emblem alternates top-right / bottom-left. ----
+  (function () {
+    var artists = [
+      // optional 4th/5th fields: photo class, title layout (default follows the corner emblem: top-right emblem -> 'tl' title top-left, bottom-left emblem -> 'tc' title top-centre; 'center' = vertically centred)
+      ['martin-garrix',    'Martin Garrix',     'Content Direction · Creative Development', 'ph-martin', 'tl', {
+        count: 3,                                                                  // three (larger) thumbnails on this page
+        stills: ['assets/shots/martin-garrix-1.webp', 'assets/shots/martin-garrix-2.webp', 'assets/shots/martin-garrix-3.webp'],
+        // Hovering a thumbnail plays its videos, one after another, as the page background
+        bg: {
+          0: ['assets/video/martin-garrix-1-web.mp4', 'assets/video/martin-garrix-2-web.mp4', 'assets/video/martin-garrix-3-web.mp4'],
+          1: ['assets/video/martin-garrix-7-web.mp4', 'assets/video/martin-garrix-4-web.mp4', 'assets/video/martin-garrix-5-web.mp4'],   // gallery 24, 25, 26
+          2: ['assets/video/martin-garrix-8-web.mp4']        // origami
+        }
+      }],
+      ['bad-omens',        'Bad Omens',         'Camera Artist', 'ph-badomens', null, {
+        count: 2,                                                                  // two (larger) thumbnails on this page
+        stills: ['assets/shots/bad-omens-1.webp', 'assets/shots/bad-omens-2.webp'],
+        bg: {                                                                      // hovering a thumbnail plays its (4 second) videos as the page background, looping until you move off
+          0: ['assets/video/bad-omens-1-web.mp4'],
+          1: ['assets/video/bad-omens-2-web.mp4', 'assets/video/bad-omens-3-web.mp4']      // gallery03, then gallery02, repeating
+        }
+      }],
+      ['renee-rapp',       'Renee Rapp',        'Camera Artist · Creative Development', 'ph-renee', 'tl', {
+        count: 2,                                                                  // two (larger) thumbnails on this page
+        stills: ['assets/shots/renee-rapp-1.webp', 'assets/shots/renee-rapp-2.webp'],
+        pos: ['50% 31%', '50% 46%'],                                               // both photos are tall: keep her face / the "Leave me alone" screen in the 16:9 thumbnail
+        bg: {
+          // one video each (cut off at 4 seconds). "talk too much" (assets/video/renee-rapp-1-web.mp4) is not used for now.
+          0: ['assets/video/renee-rapp-2.mp4'],                                    // photo 1: shattered glass
+          1: ['assets/video/renee-rapp-3.mp4']                                     // photo 2: pink feedback strobe
+        }
+      }],
+      ['griz',             'Griz',              'Camera Artist · Creative Development', 'ph-griz', null, {
+        count: 2,                                                                  // two (larger) thumbnails on this page; the stills are frames taken from the videos
+        stills: ['assets/shots/griz-1.webp', 'assets/shots/griz-2.webp'],
+        bg: { 0: ['assets/video/griz-1-web.mp4'],                                  // hazy halo
+              1: ['assets/video/griz-2-web.mp4'] }                                 // illustration 2
+      }],
+      ['melanie-martinez', 'Melanie Martinez', 'Camera Artist', 'ph-melanie', null, {
+        stills: ['assets/shots/melanie-martinez-1.webp', 'assets/shots/melanie-martinez-2.webp', 'assets/shots/melanie-martinez-3.webp'],
+        pos: ['50% 55%', '50% 55%', '50% 50%'],                                    // keep the faces in the 16:9 thumbnails
+        bg: { 0: ['assets/video/melanie-martinez-1-web.mp4'],                      // time distortion
+              1: ['assets/video/melanie-martinez-2-web.mp4'],                      // shattered glass
+              2: ['assets/video/melanie-martinez-3-web.mp4'] }                     // heatwave
+      }]
+    ];
+    var strip = document.getElementById('strip'), before = document.getElementById('about');
+    // Optional 6th field = real media for the thumbnails (indexes start at 0):
+    //   { count: 3,                                   // how many thumbnails (default 3)
+    //     stills: [url, url, url],                    // thumbnail images (missing ones stay placeholders)
+    //     pos: ['50% 30%', 'center'],                 // optional: which part of each (tall) image stays in the 16:9 thumbnail
+    //     bg: { 0: [video, video], 1: [video] } }     // hovering thumbnail N plays these videos, one after another, as the page's BACKGROUND
+    // Without it the thumbnails are placeholders (crops of the page photo) and hovering shows a "Video" label.
+    artists.forEach(function (a, i) {
+      // Corner filigree alternates top-right / bottom-left down the list. If the number of projects is odd, the LAST one would be left with just one
+      // corner, so it gets both (top-right + bottom-left); its title then sits top-centre and its thumbnails go centre-right.
+      var dual = artists.length % 2 === 1 && i === artists.length - 1;
+      var lay = a[4] || (dual ? 'tc' : (i % 2 === 0 ? 'tl' : 'tc')), media = a[5] || {}, shots = '', count = media.count || 3;
+      for (var n = 0; n < count; n++) {
+        var still = media.stills && media.stills[n], bg = media.bg && media.bg[n];
+        shots += '<figure class="shot s' + ((n % 3) + 1) + (bg ? ' has-bg' : '') + '"' + (bg ? ' data-bg="' + bg.join('|') + '"' : '') + '>' +
+          '<div class="still' + (still ? ' img' : '') + '"' + (still ? ' style="background-image:url(' + still + ')' + (media.pos && media.pos[n] ? ';background-position:' + media.pos[n] : '') + '"' : '') + '></div>' +
+          '<span class="vid-ph caps">Video</span><span class="shot-frame"></span></figure>';
+      }
+      var s = document.createElement('section');
+      s.className = 'page ' + (a[3] || ''); s.id = a[0];
+      s.innerHTML =
+        '<div class="photo p' + ((i % 4) + 1) + ' ' + (a[3] || '') + '"></div><video class="bgvid" muted playsinline preload="none"></video><video class="bgvid" muted playsinline preload="none"></video><div class="shade"></div><div class="grad grad-' + lay + '"></div>' +
+        '<img class="filmframe" src="assets/6.webp" alt="" draggable="false">' +
+        (dual ? '<div class="layer drift tr"><img src="assets/5.webp" alt="" draggable="false"></div><div class="layer drift bl"><img src="assets/4.webp" alt="" draggable="false"></div>'
+              : '<div class="layer drift"><img src="assets/' + (i % 2 === 0 ? 5 : 4) + '.webp" alt="" draggable="false"></div>') +
+        '<div class="label ' + lay + '"><h2 class="script">' + a[1] + '</h2><p class="caps">' + a[2] + '</p></div>' +
+        '<div class="shots n' + count + (media.bg ? ' real' : '') + (dual ? ' dual' : '') + ' ' + (lay === 'tl' ? 'at-left' : 'at-right') + '">' + shots + '</div>';
+      strip.insertBefore(s, before);
+    });
+
+    // Thumbnails stay still. Hovering one that has videos attached plays them, one after another, in the page's background (in place of the photo);
+    // moving off fades back to the photo. Clicking maximises the video that is playing (Esc / click outside to close).
+    // On touch screens: tap a thumbnail to start / stop its videos, tap again while playing to maximise.
+    var groups = new WeakMap();
+    function grp(page) { var g = groups.get(page); if (!g) { g = { active: null, list: [], i: 0, cur: null, nxt: null, off: 0, prep: 0 }; groups.set(page, g); } return g; }
+    // Two stacked <video> elements per page: while one plays, the other is pre-loaded with the next clip, and the swap is instant (no fade),
+    // so the page photo never shows through between clips.
+    function loadInto(v, src) { if (v.getAttribute('src') !== src) v.setAttribute('src', src); v.preload = 'auto'; v.muted = true; }
+    function cutShow(v) { v.classList.add('cut', 'show'); }
+    function cutHide(v) { v.classList.add('cut'); v.classList.remove('show'); }
+    function endCut(vs) { requestAnimationFrame(function () { requestAnimationFrame(function () { vs.forEach(function (x) { x.classList.remove('cut'); }); }); }); }
+    var CLIP_MAX = 4;                                                   // no clip plays for longer than this many seconds (longer videos are cut off and the next one starts)
+    function capClip(page, g, v) {
+      v.ontimeupdate = function () {
+        if (v !== g.cur || v.currentTime < CLIP_MAX - 0.15) return;
+        if (/\?full$/.test(g.list[g.i])) return;                        // a video whose address ends in ?full plays in full (no 4 second cut-off)
+        if (g.list.length > 1) advance(page, g); else { v.currentTime = 0; var pr = v.play(); if (pr && pr.catch) pr.catch(function () {}); }
+      };
+    }
+    function prepNext(g) {                                              // pre-load the clip after the current one into the idle element
+      if (g.list.length < 2) return;
+      loadInto(g.nxt, g.list[(g.i + 1) % g.list.length]);
+    }
+    function advance(page, g) {
+      if (!g.active || g.list.length < 2) return;
+      var incoming = g.nxt, outgoing = g.cur;
+      function swap() {
+        if (!g.active || g.nxt !== incoming) return;
+        g.i = (g.i + 1) % g.list.length;
+        incoming.currentTime = 0;
+        var pr = incoming.play(); if (pr && pr.catch) pr.catch(function () {});
+        cutShow(incoming); cutHide(outgoing);
+        outgoing.pause(); outgoing.onended = null; outgoing.ontimeupdate = null;
+        g.cur = incoming; g.nxt = outgoing; g.cur.onended = function () { advance(page, g); }; capClip(page, g, g.cur);
+        prepNext(g); endCut([incoming, outgoing]);
+      }
+      if (incoming.readyState >= 3) swap(); else incoming.addEventListener('canplay', swap, { once: true });   // outgoing keeps its last frame on screen meanwhile
+    }
+    function startBg(page, s) {
+      var g = grp(page); if (g.off) { clearTimeout(g.off); g.off = 0; } if (g.prep) { clearTimeout(g.prep); g.prep = 0; }
+      if (g.active === s) return;
+      if (g.active) g.active.classList.remove('on');
+      var vs = [].slice.call(page.querySelectorAll('.bgvid')), old = null;
+      vs.forEach(function (v) { if (v.classList.contains('show')) old = v; });                       // whatever is showing now fades out while the new clip fades in
+      var cur = old === vs[0] ? vs[1] : vs[0], nxt = old === vs[0] ? vs[0] : vs[1];
+      vs.forEach(function (v) { v.onended = null; v.ontimeupdate = null; });
+      g.active = s; g.list = s.getAttribute('data-bg').split('|'); g.i = 0; g.cur = cur; g.nxt = nxt; s.classList.add('on');
+      loadInto(cur, g.list[0]); cur.currentTime = 0; cur.loop = g.list.length === 1;
+      var pr = cur.play(); if (pr && pr.catch) pr.catch(function () {});
+      cur.classList.add('show');
+      if (old) { old.classList.remove('show'); g.prep = setTimeout(function () { g.prep = 0; old.pause(); prepNext(g); }, 650); } else prepNext(g);
+      if (g.list.length > 1) cur.onended = function () { advance(page, g); };
+      capClip(page, g, cur);
+    }
+    function stopBg(page) {
+      var g = grp(page); if (!g.active) return;
+      g.active.classList.remove('on'); g.active = null;
+      if (g.prep) { clearTimeout(g.prep); g.prep = 0; }
+      var vs = [].slice.call(page.querySelectorAll('.bgvid'));
+      vs.forEach(function (v) { v.onended = null; v.ontimeupdate = null; v.classList.remove('show'); });
+      g.off = setTimeout(function () { vs.forEach(function (v) { v.pause(); }); g.off = 0; }, 600);
+    }
+    document.addEventListener('mouseover', function (e) {
+      var s = e.target.closest && e.target.closest('.shot'); if (!s || s.contains(e.relatedTarget)) return;
+      var page = s.closest('.page');
+      if (s.hasAttribute('data-bg')) startBg(page, s); else { stopBg(page); s.classList.add('on'); }
+    });
+    document.addEventListener('mouseout', function (e) {
+      var s = e.target.closest && e.target.closest('.shot'); if (!s || s.contains(e.relatedTarget)) return;
+      var page = s.closest('.page'); s.classList.remove('on');
+      if (grp(page).active === s) stopBg(page);
+    });
+    function openBox(src) {                                              // maximise: the video fills the screen with controls
+      var box = document.createElement('div'); box.className = 'lightbox';
+      box.innerHTML = '<video src="' + src + '" autoplay loop playsinline controls></video><button type="button" class="lb-x caps">Close</button>';
+      document.body.appendChild(box);
+      function close() { box.remove(); document.removeEventListener('keydown', key); }
+      function key(e) { if (e.key === 'Escape') close(); }
+      box.addEventListener('click', function (e) { if (e.target.tagName !== 'VIDEO') close(); });
+      document.addEventListener('keydown', key);
+      var v = box.querySelector('video'), pr = v.play(); if (pr && pr.catch) pr.catch(function () {});
+    }
+    document.addEventListener('click', function (e) {
+      var s = e.target.closest && e.target.closest('.shot'); if (!s) return;
+      var page = s.closest('.page'), g = grp(page), playing = g.active === s;
+      if (playing) {
+        if (matchMedia('(hover: hover)').matches) { var cur = g.cur && g.cur.getAttribute('src'); if (cur) openBox(cur); }
+        else { var cur2 = g.cur && g.cur.getAttribute('src'); if (g.tapped === s && cur2) { g.tapped = null; stopBg(page); openBox(cur2); } else g.tapped = s; }
+        return;
+      }
+      if (matchMedia('(hover: hover)').matches) return;
+      if (s.hasAttribute('data-bg')) startBg(page, s); else s.classList.toggle('on');
+    });
+  })();
+
+  // ---- Layout: 5:4 or wider -> two side-by-side scrolling strips (left: title, opportunities, about / right: the projects).
+  //      Narrower screens keep the single strip. Pages are simply moved between containers, so everything else keeps working. ----
+  (function () {
+    var root = document.documentElement, strip = document.getElementById('strip'),
+        pages = [].slice.call(strip.querySelectorAll('.page')),
+        cols = document.createElement('div'), L = document.createElement('div'), R = document.createElement('div'),
+        leftIds = { top: 1, opportunities: 1, about: 1 }, mq = matchMedia('(min-aspect-ratio: 3/2) and (min-width: 1000px)');   // two strips only when the window is both wide AND big enough (each strip >= 500px)
+    cols.className = 'cols'; L.className = 'col-l'; R.className = 'col-r';
+    L.tabIndex = 0; R.tabIndex = 0;                                   // so arrow keys / page-down work inside each strip
+    cols.appendChild(L); cols.appendChild(R); strip.parentNode.insertBefore(cols, strip.nextSibling);
+    function scale() {
+      var t = root.classList.contains('split') ? Math.max(1, (1.25 * innerHeight) / (innerWidth / 2)) : 1;
+      root.style.setProperty('--t', t.toFixed(3));
+      root.style.setProperty('--ta', Math.max(1, t * 0.8).toFixed(3));   // About's scale: 20% gentler, so it fits a single frame
+    }
+    function place(on) {                                               // the actual switch: move the pages, flip the layout class
+      root.classList.toggle('split', on);
+      pages.forEach(function (p) { (on ? (leftIds[p.id] ? L : R) : strip).appendChild(p); });
+      if (on) [].forEach.call(document.querySelectorAll('.photo'), function (ph) { ph.classList.add('ready'); });   // inside scroll panels: just load them
+      scale();
+    }
+
+    // Switch layouts instantly, keeping the reader's place (the frame nearest the middle of the screen stays in view).
+    function switchTo(on) {
+      if (root.classList.contains('split') === on) return;
+      var vh = innerHeight, cur = null, best = 1e9;
+      pages.forEach(function (p) {
+        var r = p.getBoundingClientRect(), d = Math.abs(r.top + r.height / 2 - vh / 2); if (d < best) { best = d; cur = p; }
+      });
+      place(on);
+      var sc = on ? cur.closest('.col-l, .col-r') : null, m = parseFloat(getComputedStyle(cur).scrollMarginTop) || 0;
+      if (on) scrollTo(0, 0);
+      if (sc) sc.scrollTop = cur.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop - m;
+      else scrollTo(0, cur.getBoundingClientRect().top + scrollY - m);
+    }    function onChange() { switchTo(mq.matches); }
+    mq.addEventListener ? mq.addEventListener('change', onChange) : mq.addListener(onChange);
+    addEventListener('resize', scale); place(mq.matches);
+  })();
+
+  // ---- Lazy photos: a page's background photo is only downloaded once it is within ~1.5 screens of the viewport ----
+  (function () {
+    var photos = [].slice.call(document.querySelectorAll('.photo'));
+    if (!('IntersectionObserver' in window)) { photos.forEach(function (p) { p.classList.add('ready'); }); return; }
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('ready'); io.unobserve(e.target); } });
+    }, { rootMargin: '150% 0px' });
+    photos.forEach(function (p) { io.observe(p); });
+  })();
+
+  // ---- Mouse parallax: paused until the intro has finished, then eases in. Time-based two-stage smoothing
+  //      (no frame-rate dependence), and only the pages on screen are updated. ----
+  (function () {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var pages = [].slice.call(document.querySelectorAll('.page')), vis = new Set(),
+        tx = 0, ty = 0, x1 = 0, y1 = 0, x2 = 0, y2 = 0, last = performance.now(), running = true;
+    function apply(p) { p.style.setProperty('--mx', x2.toFixed(4)); p.style.setProperty('--my', y2.toFixed(4)); }
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (es) {
+        es.forEach(function (e) {
+          e.target.classList.toggle('live', e.isIntersecting);
+          if (e.isIntersecting) { vis.add(e.target); apply(e.target); } else vis.delete(e.target);
+        });
+      }, { rootMargin: '20% 0px' });
+      pages.forEach(function (p) { io.observe(p); });
+    } else pages.forEach(function (p) { vis.add(p); });
+    function wake() { if (!running) { running = true; last = performance.now(); requestAnimationFrame(tick); } }
+    addEventListener('pointermove', function (e) { tx = e.clientX / innerWidth - .5; ty = e.clientY / innerHeight - .5; wake(); });
+    function tick(now) {
+      var dt = Math.min(.05, (now - last) / 1000); last = now;
+      if (document.getElementById('loader')) { x1 = y1 = x2 = y2 = 0; requestAnimationFrame(tick); return; }   // rest until the intro is done
+      var k = 1 - Math.exp(-dt * 4.2);
+      x1 += (tx - x1) * k; y1 += (ty - y1) * k;
+      x2 += (x1 - x2) * k; y2 += (y1 - y2) * k;
+      vis.forEach(apply);
+      if (Math.abs(tx - x2) + Math.abs(ty - y2) + Math.abs(x1 - x2) + Math.abs(y1 - y2) < .0004) { running = false; return; }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  })();
+  // ---- Scroll parallax: --sy is -1..1 (page below viewport centre = +1). Illustrations start a touch lower
+  //      and rise slightly faster than the page; the photo lags slightly behind. Very subtle by design. ----
+  (function () {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var pages = [].slice.call(document.querySelectorAll('.page')), queued = false;
+    function update() {
+      queued = false;
+      var vh = innerHeight;
+      pages.forEach(function (p) {
+        var r = p.getBoundingClientRect();
+        if (r.bottom < -vh * .5 || r.top > vh * 1.5) return;
+        var s = ((r.top + r.height / 2) - vh / 2) / vh;
+        if (p === pages[0]) { var sc = p.closest('.col-l, .col-r'); s = -(sc ? sc.scrollTop : scrollY) / vh; }   // title page rests exactly in place at the top
+        p.style.setProperty('--sy', Math.max(-1, Math.min(1, s)).toFixed(4));
+      });
+    }
+    function queue() { if (!queued) { queued = true; requestAnimationFrame(update); } }
+    addEventListener('scroll', queue, { passive: true, capture: true });   // capture: also hears the two side-by-side strips scrolling
+    addEventListener('resize', queue); update();
+  })();
+
+  // ---- Opportunities: draw the lines / reveal the names when the page scrolls into view (replays each visit) ----
+  (function () {
+    var toc = document.getElementById('toc');
+    if (!('IntersectionObserver' in window)) { toc.classList.add('in'); return; }
+    new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        var on = e.intersectionRatio > 0.45;
+        if (on && !toc.classList.contains('in')) { toc.classList.add('fresh'); setTimeout(function () { toc.classList.remove('fresh'); }, 2200); }
+        toc.classList.toggle('in', on);
+        if (!on) [].forEach.call(toc.querySelectorAll('.sec.open'), function (s) { s.classList.remove('open'); });
+      });
+    }, { threshold: [0, .45, 1] }).observe(document.getElementById('opportunities'));
+  })();
+  // ---- Touch: tap a title to reveal its names (tap another title to switch) ----
+  (function () {
+    var secs = [].slice.call(document.querySelectorAll('.sec'));
+    secs.forEach(function (s) {
+      s.addEventListener('click', function (e) {
+        if (matchMedia('(hover: hover)').matches || e.target.closest('a')) return;
+        var was = s.classList.contains('open');
+        secs.forEach(function (o) { o.classList.remove('open'); });
+        if (!was) s.classList.add('open');
+      });
+    });
+  })();
+
+  // ---- Smooth scrolling: eased wheel scroll + eased anchor jumps. Works for the page (single strip) and for each of the two
+  //      side-by-side strips on wide screens. Touch / keyboard / scrollbar stay native. ----
+  (function () {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var root = document.documentElement, states = new Map();
+    function pos(el) { return el ? el.scrollTop : scrollY; }
+    function put(el, v) { if (el) el.scrollTop = v; else scrollTo(0, v); }
+    function maxOf(el) { return el ? el.scrollHeight - el.clientHeight : root.scrollHeight - innerHeight; }
+    function S(el) { var k = el || window, s = states.get(k); if (!s) { s = { el: el, target: pos(el), cur: pos(el), active: false, glide: null }; states.set(k, s); } return s; }
+    function clamp(s, v) { return Math.max(0, Math.min(maxOf(s.el), v)); }
+    function ease(t) { return t < .5 ? 16 * t * t * t * t * t : 1 - Math.pow(-2 * t + 2, 5) / 2; }   // anchor jumps: slow, very soft landing
+    function run(s) { requestAnimationFrame(function () { step(s); }); }
+    function start(s) { if (!s.active) { s.active = true; s.cur = pos(s.el); run(s); } }
+    function glideTo(s, v) {
+      var to = clamp(s, v), from = pos(s.el);
+      s.glide = { from: from, to: to, t0: performance.now(), dur: Math.min(2600, 1100 + Math.abs(to - from) * 0.35) };
+      if (!s.active) { s.active = true; run(s); }
+    }
+    function step(s) {
+      if (s.glide) {
+        var t = Math.min(1, (performance.now() - s.glide.t0) / s.glide.dur);
+        s.cur = s.glide.from + (s.glide.to - s.glide.from) * ease(t);
+        put(s.el, s.cur);
+        if (t >= 1) { s.target = s.cur = s.glide.to; s.glide = null; s.active = false; } else run(s);
+        return;
+      }
+      s.cur += (s.target - s.cur) * 0.085;
+      if (Math.abs(s.target - s.cur) < 0.4) { s.cur = s.target; s.active = false; }
+      put(s.el, s.cur);
+      if (s.active) run(s);
+    }
+    addEventListener('wheel', function (e) {
+      if (e.ctrlKey || e.defaultPrevented) return;                    // pinch-zoom etc. untouched
+      var split = root.classList.contains('split'), el = split ? (e.target.closest && e.target.closest('.col-l, .col-r')) : null;
+      if (split && !el) return;
+      e.preventDefault();
+      if (document.getElementById('loader')) return;                  // no scrolling while the intro is playing
+      var s = S(el);
+      if (s.glide) { s.glide = null; s.target = s.cur = pos(el); }    // wheel interrupts a glide
+      var d = e.deltaMode === 1 ? e.deltaY * 32 : e.deltaMode === 2 ? e.deltaY * innerHeight : e.deltaY;
+      s.target = clamp(s, (s.active ? s.target : pos(el)) + d);
+      start(s);
+    }, { passive: false });
+    addEventListener('scroll', function (e) {                         // keep in sync when something else scrolls (keyboard, scrollbar, touch)
+      var t = e.target, el = (t === document || t === document.documentElement || t === window) ? null : t, s = states.get(el || window);
+      if (s && !s.active) { s.target = s.cur = pos(el); }
+    }, { passive: true, capture: true });
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest && e.target.closest('a[href^="#"]');
+      if (!a) return;
+      var el = document.getElementById(a.getAttribute('href').slice(1));
+      if (!el) return;
+      e.preventDefault();
+      var sc = root.classList.contains('split') ? el.closest('.col-l, .col-r') : null, s = S(sc),
+          m = parseFloat(getComputedStyle(el).scrollMarginTop) || 0,
+          top = sc ? el.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop : el.getBoundingClientRect().top + scrollY;
+      glideTo(s, top - m);
+    });
+  })();
+  // ---- Custom cursor ----
+  (function () {
+    var el = document.getElementById('cursor');
+    if (!el || !matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+    document.documentElement.classList.add('has-cursor');
+    var x = -100, y = -100, cx = x, cy = y;
+    var sel = 'a, button, .sec, .shot, .lightbox, [data-hover]';
+    addEventListener('pointermove', function (e) {
+      x = e.clientX; y = e.clientY; el.classList.add('show');
+      el.classList.toggle('link', !!(e.target.closest && e.target.closest(sel)));
+    });
+    addEventListener('pointerdown', function () { el.classList.add('down'); });
+    addEventListener('pointerup', function () { el.classList.remove('down'); });
+    document.documentElement.addEventListener('pointerleave', function () { el.classList.remove('show'); });
+    (function tick() {
+      cx += (x - cx) * .35; cy += (y - cy) * .35;
+      el.style.transform = 'translate3d(' + cx.toFixed(1) + 'px,' + cy.toFixed(1) + 'px,0)';
+      requestAnimationFrame(tick);
+    })();
+  })();
+
+  // ---- Intro: film leader - the draw-in is the progress bar (filigree, then name). Fades out when loaded. Click / any key skips. ----
+  (function () {
+    var L = document.getElementById('loader'), root = document.documentElement;
+    if (!L) return;
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    scrollTo(0, 0);
+    var done = false;
+    function reveal() {
+      if (done) return; done = true;
+      root.classList.remove('loading'); L.classList.add('out');
+      setTimeout(function () { L.remove(); }, 1200);
+    }
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { reveal(); return; }
+
+    // real loading state: page load, fonts, and the first screen's art
+    var MIN = 3800, start = performance.now(), got = 0, total = 0, shown = 0;
+    function track(p) { total++; p.then(function () { got++; }); return p; }
+    function img(src) { return new Promise(function (r) { var i = new Image(); i.onload = i.onerror = r; i.src = src; }); }
+    track(document.readyState === 'complete' ? Promise.resolve() : new Promise(function (r) { addEventListener('load', r); }));
+    track(document.fonts ? document.fonts.ready : Promise.resolve());
+    ['assets/photos/hero-red.webp', 'assets/3.webp', 'assets/2.webp', 'assets/6.webp'].forEach(function (s) { track(img(s)); });
+
+    L.classList.add('on');
+    (function frame(now) {
+      if (done) return;
+      var timeP = Math.min(1, (now - start) / MIN), realP = got / total, p = Math.min(realP, timeP);
+      shown += (p - shown) * 0.14;
+      L.style.setProperty('--p', shown.toFixed(4));                                                          // whole-load progress (used by the large-screen name-only intro)
+      L.style.setProperty('--fp', Math.min(1, shown / 0.72).toFixed(4));   // filigree = first 72% of loading
+      L.style.setProperty('--np', Math.max(0, Math.min(1, (shown - 0.72) / 0.28)).toFixed(4));   // name = the last 28%
+      if ((realP === 1 && timeP === 1 && shown > 0.995) || now - start > 10000) {
+        setTimeout(function () { if (done) return; L.classList.add('rise'); setTimeout(reveal, 1050); }, 250);   // loaded: rise into place, then fade
+        return;
+      }
+      requestAnimationFrame(frame);
+    })(performance.now());
+    addEventListener('pointerdown', reveal); addEventListener('keydown', reveal);
+  })();
+</script>
+</body>
+</html>
